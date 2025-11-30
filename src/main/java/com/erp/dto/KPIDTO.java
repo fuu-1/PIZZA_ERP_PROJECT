@@ -7,9 +7,9 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class KpiDTO {
+public class KPIDTO {
     private Integer totalSales;
     private Integer totalMenuCount;
     private Integer avgStoreSales;
-    private Double salesGrowthRate;
+    private Double growthRate;
 }

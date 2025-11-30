@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.transaction.annotation.Transactional;
 
 
@@ -15,6 +17,12 @@ import java.time.LocalDate;
 public class StoreSalesRepositoryTest {
     @Autowired
     private StoreSalesRepository storeSalesRepository;
+
+    @Test
+    public void findSalesListTest(){
+        Pageable pageable = PageRequest.of(0, 10);
+        System.out.println(storeSalesRepository.findSalesList(null,null,null,pageable).getContent());
+    }
 
     @Test
     public void findBySalesDateBetweenTest() {

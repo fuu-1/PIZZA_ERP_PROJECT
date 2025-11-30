@@ -2,6 +2,20 @@
 <!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.erp.dao.ManagerDAO">
+    <select id="getManagerForLogin" resultType="com.erp.dto.ManagerDTO">
+        SELECT
+            manager_id,
+            pw,
+            email,
+            manager_name,
+            phone_number,
+            in_date,
+            del_date,
+            role
+        FROM manager
+        WHERE manager_id = #{managerId}
+    </select>
+
     <insert id="addManager" parameterType="com.erp.dto.ManagerDTO">
         insert into manager (manager_id,
                              pw,

@@ -7,6 +7,28 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <style>
+        .menuCard {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+        }
+        .menuCard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .status-now { background-color: #28a745 !important; }       /* 출시 중 */
+        .status-soon { background-color: #ffc107 !important; color: #000 !important; } /* 출시 예정 */
+        .status-end { background-color: #6c757d !important; }       /* 출시 중단 */
+
         .menuBox {
             cursor: pointer;
         }
@@ -83,22 +105,22 @@
         <div class="d-flex align-items-center mb-3">
             <div class="me-4">
                 <label class="fw-semibold me-2">카테고리</label>
-                <select class="form-select d-inline-block w-auto" name="category">
+                <select class="form-select d-inline-block w-auto" id="category">
                     <option value="">전체</option>
-                    <option value="pizza">피자</option>
-                    <option value="side">사이드디시</option>
-                    <option value="drink">음료</option>
-                    <option value="etc">기타</option>
+                    <option value="피자">피자</option>
+                    <option value="사이드디시">사이드디시</option>
+                    <option value="음료">음료</option>
+                    <option value="기타">기타</option>
                 </select>
             </div>
 
             <div class="me-4">
                 <label class="fw-semibold me-2">출시 상태</label>
-                <select class="form-select d-inline-block w-auto" name="category">
+                <select class="form-select d-inline-block w-auto" id="releaseStatus">
                     <option value="">전체</option>
-                    <option value="commingSoon">출시 예정</option>
-                    <option value="now">출시 중</option>
-                    <option value="end">출시 중단</option>
+                    <option value="출시 예정">출시 예정</option>
+                    <option value="출시 중">출시 중</option>
+                    <option value="출시 중단">출시 중단</option>
                 </select>
             </div>
 
@@ -130,61 +152,69 @@
         </div>
 
         <!-- 이미지 뷰 -->
-        <div class="tab-content-area image">
-            <div class="row g-3">
-                <div class="col-6 col-md-3">
-                    <div class="border rounded p-2 bg-white shadow-sm text-center menuBox">
-                        <img src="https://via.placeholder.com/120" class="img-fluid mb-2">
-                        <div>페퍼로니 피자</div>
-                        <small class="text-muted">라지 | 25,000원 | 출시 중</small><br>
-                        <small class="text-muted">미디움 | 15,000원 | 출시 중</small>
-                    </div>
-                </div>
+        <div class="tab-content-area image scroll-area">
+            <div class="row g-3" id="menuImageBody">
 
-                <div class="col-6 col-md-3">
-                    <div class="border rounded p-2 bg-white shadow-sm text-center menuBox">
-                        <img src="https://via.placeholder.com/120" class="img-fluid mb-2">
-                        <div>치즈 피자</div>
-                        <small class="text-muted">23,000원 | 출시 중</small>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
 </div>
+<script type="application/javascript" src="/js/util.js"></script>
 <script>
     $(document).ready(function () {
         loadMenuList();
 
-        function loadMenuList() {
-            fetch("/menuList")
-                .then(res => res.json())
-                .then(menuList => renderMenuList(menuList))
+        $("#category, #releaseStatus").change(() => {
+            loadMenuList()
+        })
+        $("[data-tab]").on("click", function () {
+            const tabName = $(this).data("tab");
 
-        }
+            // 콘텐츠 탭 활성화 전환
+            $(".tab-content-area").removeClass("tab-active");
+            $("." + tabName).addClass("tab-active");
 
-        function groupByMenuCode(menuList) {
-            const groups = {};
-            menuList.forEach(menu => {
-                if (!groups[menu.menuCode]) {
-                    groups[menu.menuCode] = [];
-                }
-                groups[menu.menuCode].push(menu);
-            });
-            return groups;
-        }
+            // 탭 버튼 스타일 전환
+            $("[data-tab]").removeClass("btn-dark").addClass("btn-outline-dark");
+            $(this).removeClass("btn-outline-dark").addClass("btn-dark");
+        });
+    });
 
-        function renderMenuList(menuList) {
-            const tbody = $("#menuListBody");
-            let html = "";
 
-            const grouped = groupByMenuCode(menuList);
+    function loadMenuList() {
+        const category = $("#category").val();
+        const releaseStatus = $("#releaseStatus").val();
 
-            Object.values(grouped).forEach(group => {
-                const first = group[0];
-                const rowspan = group.length;
+        const url = `menuList?menuCategory=${category}&releaseStatus=${releaseStatus}`;
 
-                html += `
+        fetchUtil(url, data => {
+            renderMenuList(data);
+            renderMenuImages(data);
+        })
+    }
+
+    function groupByMenuCode(menuList) {
+        const groups = {};
+        menuList.forEach(menu => {
+            if (!groups[menu.menuCode]) {
+                groups[menu.menuCode] = [];
+            }
+            groups[menu.menuCode].push(menu);
+        });
+        return groups;
+    }
+
+    function renderMenuList(menuList) {
+        const tbody = $("#menuListBody");
+        let html = "";
+
+        const grouped = groupByMenuCode(menuList);
+
+        Object.values(grouped).forEach(group => {
+            const first = group[0];
+            const rowspan = group.length;
+
+            html += `
         <tr>
             <td rowspan="${rowspan}">${first.menuCategory}</td>
             <td rowspan="${rowspan}">${first.menuCode}</td>
@@ -203,33 +233,71 @@
         </tr>
         `;
 
-                for (let i = 1; i < group.length; i++) {
-                    html += `
+            for (let i = 1; i < group.length; i++) {
+                html += `
             <tr>
                 <td>${group[i].size}</td>
                 <td>${group[i].menuPrice}</td>
             </tr>
             `;
-                }
+            }
+        });
+
+        tbody.html(html);
+    }
+
+    function renderMenuImages(menuList) {
+        const imageBody = $("#menuImageBody");
+        imageBody.html("");
+
+        const grouped = groupByMenuCode(menuList);
+
+        Object.values(grouped).forEach(group => {
+            const first = group[0];
+            let sizePriceHtml = "";
+
+            group.forEach(menu => {
+                sizePriceHtml += `
+                            <div class="d-flex justify-content-between align-items-center py-1 border-bottom">
+                                <span class="fw-semibold">${menu.size}</span>
+                                <span>${menu.menuPrice.toLocaleString()}원</span>
+                                <span>${getStatusBadge(menu.releaseStatus)}</span>
+                            </div>
+                `;
             });
 
-            tbody.html(html);
+            const cardHtml = `
+                 <div class="col-6 col-md-3">
+                <div class="border rounded p-2 bg-white shadow-sm text-center menuBox" data-menu-no="${first.menuNo}">
+
+                    <!-- 이미지 -->
+                    <img src="${first.menuImage || 'https://via.placeholder.com/120'}"
+                         class="img-fluid mb-2"
+                         style="height:120px; object-fit:cover;">
+
+                    <!-- 메뉴명 -->
+                    <div class="fw-bold mb-2">${first.menuName}</div>
+
+                    <!-- 사이즈/가격/상태 박스 -->
+                    <div class="text-start small">
+                        ${sizePriceHtml}
+                    </div>
+                </div>
+            </div>
+            `;
+            imageBody.append(cardHtml);
+        })
+    }
+
+    function getStatusBadge(status) {
+        if (status === "출시 중") {
+            return `<span class="status-badge status-now">출시 중</span>`;
+        } else if (status === "출시 예정") {
+            return `<span class="status-badge status-soon">출시 예정</span>`;
+        } else {
+            return `<span class="status-badge status-end">출시 중단</span>`;
         }
-
-
-
-        $("[data-tab]").on("click", function () {
-            const tabName = $(this).data("tab");
-
-            // 콘텐츠 탭 활성화 전환
-            $(".tab-content-area").removeClass("tab-active");
-            $("." + tabName).addClass("tab-active");
-
-            // 탭 버튼 스타일 전환
-            $("[data-tab]").removeClass("btn-dark").addClass("btn-outline-dark");
-            $(this).removeClass("btn-outline-dark").addClass("btn-dark");
-        });
-    });
+    }
 
     $("#storeMenuBtn").click(() => {
         //지금은 본사 기준. 직영점 로그인 시, storeMenuUI.html로 이동하게 해야 함
@@ -240,9 +308,11 @@
         location.href = `/menuDetail?menuNo=${menuNo}`;
     });
 
-    $(".menuBox").click(() => {
-        location.href = "menuDetailUI.html"
+    $(document).on("click", ".menuBox", function () {
+        const menuNo = $(this).data("menuNo");
+        location.href = `/menuDetail?menuNo=${menuNo}`;
     });
+
     $("#menuAddBtn").click(() => {
         location.href = "menuAddUI.html"
     })

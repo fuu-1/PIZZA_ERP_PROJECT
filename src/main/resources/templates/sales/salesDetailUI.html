@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
   <title>직영점 판매상품 목록</title>
@@ -8,16 +8,15 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 
-  <!-- =========================
-       CUSTOM CSS
-  ========================== -->
+  <!-- fetchUtil만 사용 (pagination util 제거) -->
+  <script src="/js/util.js"></script>
+
   <style>
     .page-wrapper {
       max-width:1500px;
       margin:auto;
     }
     .w-240 { width:240px; }
-    .w-80 { width:80px; }
   </style>
 </head>
 
@@ -25,28 +24,21 @@
 
 <div class="page-wrapper">
 
-  <!-- 매장명 -->
-  <h4 class="text-center mb-4 mt-3">금천직영점</h4>
+  <h4 class="text-center mb-4 mt-3" th:text="${storeName}"></h4>
 
-  <!-- 뒤로가기 + 검색창 -->
   <div class="d-flex justify-content-between align-items-center mb-3">
-
-    <!-- 왼쪽 : 뒤로가기 -->
     <button id="btnBack" class="btn btn-warning btn-sm">뒤로가기</button>
 
-    <!-- 오른쪽 : 검색 -->
     <div class="d-flex gap-2">
-      <input type="text" class="form-control w-240" placeholder="판매상품">
-      <button id="orderDeatilBtn" class="btn btn-primary">검색</button>
+      <input id="searchInput" type="text" class="form-control w-240" placeholder="판매상품 검색">
+      <button id="searchBtn" class="btn btn-primary">검색</button>
     </div>
-
   </div>
 
-  <!-- 테이블 -->
   <div class="card">
     <div class="card-body p-0">
 
-      <table class="table table-hover mb-0 text-center align-middle" id="dataTable">
+      <table class="table table-hover mb-0 text-center align-middle">
         <thead class="table-light">
         <tr>
           <th>번호</th>
@@ -63,115 +55,98 @@
     </div>
   </div>
 
-  <!-- 페이지네이션 + 개수선택 -->
-  <div class="d-flex justify-content-between align-items-center mt-3">
-
-    <!-- 왼쪽 의도적 빈칸 -->
-    <div class="w-80"></div>
-
-    <div class="flex-grow-1 d-flex justify-content-center">
-      <nav>
-        <ul class="pagination mb-0" id="pagination"></ul>
-      </nav>
-    </div>
-
-    <div class="d-flex justify-content-end">
-      <select id="rowsPerPage" class="form-select form-select-sm w-80">
-        <option value="5">5</option>
-        <option value="10" selected>10</option>
-        <option value="20">20</option>
-      </select>
-    </div>
-
+  <!-- ⭐ onclick 페이징 적용 영역 -->
+  <div class="d-flex justify-content-center mt-3">
+    <nav>
+      <ul class="pagination mb-0" id="pagination"></ul>
+    </nav>
   </div>
 
 </div>
 
 <!-- ============================
-     SCRIPT
+           SCRIPT
 ============================ -->
 <script>
-  /* 뒤로가기 */
-  $("#btnBack").on("click", function () {
-    history.back();
-  });
 
-  /* 샘플 데이터 */
-  const data = [
-    {no:1, category:"피자", item:"페퍼로니피자", size:"라지", qty:80, price:"800,500"},
-    {no:2, category:"피자", item:"치즈피자", size:"라지", qty:70, price:"678,400"},
-    {no:3, category:"피자", item:"콤비네이션피자", size:"라지", qty:60, price:"719,400"},
-    {no:4, category:"음료", item:"콜라", size:"1.5L", qty:70, price:"126,000"},
-    {no:5, category:"음료", item:"사이다", size:"1.5L", qty:65, price:"120,000"},
-    {no:6, category:"피자", item:"불고기피자", size:"라지", qty:55, price:"650,000"},
-    {no:7, category:"피자", item:"베이컨피자", size:"라지", qty:45, price:"610,000"},
-    {no:8, category:"피자", item:"고구마피자", size:"라지", qty:48, price:"630,000"},
-    {no:9, category:"음료", item:"환타", size:"1.5L", qty:30, price:"90,000"},
-    {no:10, category:"음료", item:"제로콜라", size:"1.5L", qty:40, price:"110,000"}
-  ];
+  /* URL 파라미터 */
+  const params = new URLSearchParams(location.search);
+  const storeNo = params.get("storeNo");
+  const salesDate = params.get("salesDate");
 
+  $("#btnBack").on("click", () => history.back());
+
+  let detailData = [];
+  let filteredData = [];
   let currentPage = 1;
+  const rowsPerPage = 10;
 
-  /* 테이블 렌더링 */
+  /* -----------------------------------
+          테이블 렌더링
+  ----------------------------------- */
   function renderTable() {
-    const rowsPerPage = Number($("#rowsPerPage").val());
     const startIdx = (currentPage - 1) * rowsPerPage;
     const endIdx = startIdx + rowsPerPage;
 
-    const $tbody = $("#tableBody");
-    $tbody.empty();
+    const tbody = $("#tableBody");
+    tbody.empty();
 
-    data.slice(startIdx, endIdx).forEach(row => {
-      $tbody.append(`
+    filteredData.slice(startIdx, endIdx).forEach((row, idx) => {
+      const rowNo = startIdx + idx + 1;
+
+      tbody.append(`
         <tr>
-          <td>${row.no}</td>
-          <td>${row.category}</td>
-          <td>${row.item}</td>
+          <td>${rowNo}</td>
+          <td>${row.menuCategory}</td>
+          <td>${row.menuName}</td>
           <td>${row.size}</td>
-          <td>${row.qty}</td>
-          <td>${row.price}</td>
+          <td>${row.menuCount}</td>
+          <td>${row.totalPrice.toLocaleString()}</td>
         </tr>
       `);
     });
 
-    renderPagination(rowsPerPage);
+    renderPagination();
   }
 
-  /* 페이지네이션 렌더링 */
-  function renderPagination(rowsPerPage) {
-    const totalPages = Math.ceil(data.length / rowsPerPage);
-    const $pagination = $("#pagination");
 
+  /* -----------------------------------
+         ⭐ onclick 방식 페이징
+  ----------------------------------- */
+  function renderPagination() {
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    const $pagination = $("#pagination");
     $pagination.empty();
 
-    // 이전
+    if (totalPages === 0) return;
+
+    /* prev */
     $pagination.append(`
-      <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="movePage(${currentPage - 1})">&lt;</a>
+      <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
+        <a class="page-link" href="#" onclick="loadPage(${currentPage - 1}); return false;">&lt;</a>
       </li>
     `);
 
-    // 숫자
+    /* 번호 */
     for (let i = 1; i <= totalPages; i++) {
       $pagination.append(`
-        <li class="page-item ${i === currentPage ? 'active' : ''}">
-          <a class="page-link" href="#" onclick="movePage(${i})">${i}</a>
+        <li class="page-item ${i === currentPage ? "active" : ""}">
+          <a class="page-link" href="#" onclick="loadPage(${i}); return false;">${i}</a>
         </li>
       `);
     }
 
-    // 다음
+    /* next */
     $pagination.append(`
-      <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-        <a class="page-link" href="#" onclick="movePage(${currentPage + 1})">&gt;</a>
+      <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
+        <a class="page-link" href="#" onclick="loadPage(${currentPage + 1}); return false;">&gt;</a>
       </li>
     `);
   }
 
-  /* 페이지 이동 */
-  function movePage(page) {
-    const rowsPerPage = Number($("#rowsPerPage").val());
-    const totalPages = Math.ceil(data.length / rowsPerPage);
+  /* 실제 페이지 로드 */
+  function loadPage(page) {
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
 
     if (page < 1 || page > totalPages) return;
 
@@ -179,15 +154,39 @@
     renderTable();
   }
 
-  /* 개수 변경 이벤트 */
-  $("#rowsPerPage").on("change", function() {
+
+  /* -----------------------------------
+            검색
+  ----------------------------------- */
+  function applySearch() {
+    const keyword = $("#searchInput").val().trim();
+
+    filteredData =
+            keyword === ""
+                    ? detailData
+                    : detailData.filter(d => d.menuName.includes(keyword));
+
     currentPage = 1;
     renderTable();
+  }
+
+  $("#searchBtn").on("click", applySearch);
+  $("#searchInput").on("keyup", e => {
+    if (e.key === "Enter") applySearch();
   });
 
-  /* 초기 실행 */
+
+  /* -----------------------------------
+        초기 데이터 로딩
+  ----------------------------------- */
   $(document).ready(function() {
-    renderTable();
+    const url = `/salesDetail?storeNo=${storeNo}&salesDate=${salesDate}`;
+
+    fetchUtil(url, data => {
+      detailData = data;
+      filteredData = detailData;
+      renderTable();
+    });
   });
 
 </script>

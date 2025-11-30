@@ -6,9 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 @Controller
 @RequiredArgsConstructor
-public class SalesOrderController {
-    @GetMapping("salesOrder")
-    public String salesOrder() {
-        return "sales/salesOrderManagerUI";
+public class IndexController {
+
+    @GetMapping("/loginView")
+    public String loginView() {
+        return "loginUI";   // 너의 loginUI.html 경로에 맞춰서
     }
 }

@@ -11,24 +11,20 @@ public class MenuServiceTest {
     MenuService menuService;
 
     @Test
-    public void getAllMenuTest(){
-        System.out.println(menuService.getAllMenu());
+    public void getMenuListTest(){
+        System.out.println(menuService.getMenuList(null, null));
     }
 
     @Test
-    public void getMenuByCategoryTest(){
-        System.out.println(menuService.getMenuByCategory("음료"));
+    public void getMenuListByCategoryTest(){
+        System.out.println(menuService.getMenuList("피자", null));
     }
 
     @Test
-    public void getMenuByReleaseStatusTest(){
-        System.out.println(menuService.getMenuByReleaseStatus("출시 예정"));
+    public void getMenuListByReleaseStatusTest(){
+        System.out.println(menuService.getMenuList(null, "출시 예정"));
     }
 
-    @Test
-    public void getMenuByCategoryAndReleaseStatusTest(){
-        System.out.println(menuService.getMenuByCategoryAndReleaseStatus("피자", "출시 중단"));
-    }
 
     @Test
     public void getMenuDetailTest(){

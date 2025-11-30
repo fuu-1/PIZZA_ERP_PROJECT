@@ -27,6 +27,13 @@ public class SalesOrder {
     @Column(nullable = false)
     private Integer salesOrderAmount;
 
-    @OneToMany(mappedBy = "salesOrder", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "salesOrder", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
     private List<StoreOrderDetail> orderDetails = new ArrayList<>();
+
+    public void addOrderDetail(StoreOrderDetail detail) {
+        this.orderDetails.add(detail);
+        detail.setSalesOrder(this);
+    }
+
 }

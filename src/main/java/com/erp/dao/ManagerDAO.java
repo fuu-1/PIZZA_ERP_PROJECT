@@ -12,4 +12,5 @@ public interface ManagerDAO {
     void removeManager(ManagerDTO manager);
     List<ManagerDTO> getManagers();
     ManagerDTO getManagerDetail(String managerId);
+    ManagerDTO getManagerForLogin(String managerId);
 }

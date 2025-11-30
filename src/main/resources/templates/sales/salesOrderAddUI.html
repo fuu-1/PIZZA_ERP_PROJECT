@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>주문 등록</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+</head>
+
+<body class="bg-light py-4">
+<div class="container">
+
+  <!-- 제목 -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">주문 등록</h2>
+  </div>
+
+  <!-- 직영점 선택 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">직영점 선택</div>
+    <div class="card-body">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input type="text" class="form-control" id="storeSearch" placeholder="직영점명 검색">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100" id="searchStoreBtn">검색</button>
+        </div>
+        <div class="col-md-6">
+          <select class="form-select" id="storeSelect">
+            <option value="">직영점을 선택하세요</option>
+            <!-- 검색 결과 append 예정 -->
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 메뉴 검색 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">메뉴 추가</div>
+    <div class="card-body">
+      <div class="row g-2 mb-3">
+        <div class="col-md-5">
+          <input type="text" class="form-control" id="menuSearch" placeholder="메뉴명 검색">
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100" id="searchMenuBtn">검색</button>
+        </div>
+        <div class="col-md-5">
+          <select class="form-select" id="menuSelect">
+            <option value="">판매 가능한 메뉴를 선택하세요</option>
+            <!-- 검색 결과 append 예정 -->
+          </select>
+        </div>
+      </div>
+
+      <button class="btn btn-warning" id="addMenuBtn">메뉴 추가</button>
+    </div>
+  </div>
+
+  <!-- 선택된 메뉴 목록 -->
+  <div class="card mb-4">
+    <div class="card-header fw-semibold">주문 메뉴 목록</div>
+    <div class="card-body">
+      <table class="table table-bordered align-middle text-center">
+        <thead class="table-light">
+        <tr>
+          <th style="width: 15%">메뉴 코드</th>
+          <th style="width: 20%">메뉴명</th>
+          <th style="width: 15%">판매 금액(원)</th>
+          <th style="width: 15%">판매 수량</th>
+          <th style="width: 10%">삭제</th>
+        </tr>
+        </thead>
+        <tbody id="orderMenuList">
+        <!-- 메뉴 추가 시 append -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 버튼 -->
+  <div class="d-flex justify-content-end mt-4">
+    <button class="btn btn-success me-2 px-4" id="submitOrder">주문 등록</button>
+    <button class="btn btn-outline-secondary px-4" id="cancelBtn">취소</button>
+  </div>
+
+</div>
+
+<script>
+  // (1) 취소 버튼
+  $("#cancelBtn").click(() => {
+    history.back();
+  });
+
+  // (2) 메뉴 추가 버튼
+  $("#addMenuBtn").click(() => {
+    const menuCode = $("#menuSelect").val();
+
+    if (!menuCode) {
+      alert("메뉴를 선택하세요.");
+      return;
+    }
+
+    const menuName = $("#menuSelect option:selected").text();
+
+    // 중복 방지
+    if ($(`#orderMenuList tr[data-code="${menuCode}"]`).length > 0) {
+      alert("이미 추가된 메뉴입니다.");
+      return;
+    }
+
+    const newRow = `
+            <tr data-code="${menuCode}">
+                <td>${menuCode}</td>
+                <td>${menuName}</td>
+                <td><input type="number" class="form-control text-end priceInput" placeholder="0"></td>
+                <td><input type="number" class="form-control text-end qtyInput" value="1" min="1"></td>
+                <td><button class="btn btn-sm btn-danger removeBtn">삭제</button></td>
+            </tr>
+        `;
+
+    $("#orderMenuList").append(newRow);
+  });
+
+  // (3) 동적으로 생성된 삭제 버튼 → jQuery 위임
+  $(document).on("click", ".removeBtn", function () {
+    $(this).closest("tr").remove();
+  });
+
+  // (4) 주문 등록 버튼
+  $("#submitOrder").click(() => {
+    const store = $("#storeSelect").val();
+    if (!store) {
+      alert("직영점을 선택하세요.");
+      return;
+    }
+
+    const menuItems = [];
+
+    $("#orderMenuList tr").each(function () {
+      const code = $(this).data("code");
+      const price = $(this).find(".priceInput").val();
+      const qty = $(this).find(".qtyInput").val();
+
+      menuItems.push({
+        menuCode: code,
+        price: price,
+        quantity: qty
+      });
+    });
+
+    if (menuItems.length === 0) {
+      alert("메뉴를 1개 이상 추가하세요.");
+      return;
+    }
+
+    // 나중에 AJAX로 서버에 보낼 데이터
+    console.log({
+      storeNo: store,
+      menus: menuItems
+    });
+
+    alert("주문 등록 완료(테스트)");
+  });
+</script>
+
+</body>
+</html>

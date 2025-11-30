@@ -49,19 +49,19 @@ public class MenuTest {
 
     @Test
     void getAllMenuTest() {
-        List<MenuDTO> menuList = menuDAO.getAllMenu();
+        List<MenuDTO> menuList = menuDAO.getMenuList(null, null);
         System.out.println(menuList);
     }
 
     @Test
     void getMenuByCategoryTest() {
-        List<MenuDTO> menuList = menuDAO.getMenuByCategory("피자");
+        List<MenuDTO> menuList = menuDAO.getMenuList("피자", null);
         System.out.println(menuList);
     }
 
     @Test
     void getMenuByReleaseStatusTest() {
-        List<MenuDTO> menuList = menuDAO.getMenuByReleaseStatus("출시 예정");
+        List<MenuDTO> menuList = menuDAO.getMenuList(null, "출시 예정");
         System.out.println(menuList);
     }
 }

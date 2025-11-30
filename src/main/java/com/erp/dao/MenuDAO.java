@@ -2,6 +2,7 @@ package com.erp.dao;
 
 import com.erp.dto.MenuDTO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,13 +15,7 @@ public interface MenuDAO {
 
     void removeMenu(Long menuNo);
 
-    List<MenuDTO> getAllMenu();
-
-    List<MenuDTO> getMenuByCategory(String menuCategory);
-
-    List<MenuDTO> getMenuByReleaseStatus(String releaseStatus);
-
-    List<MenuDTO> getMenuByCategoryAndReleaseStatus(String menuCategory, String releaseStatus);
+    List<MenuDTO> getMenuList(@Param("menuCategory")String menuCategory, @Param("releaseStatus") String releaseStatus);
 
     List<MenuDTO> getMenuByMenuCode(String menuCode);
 

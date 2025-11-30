@@ -4,79 +4,62 @@
 <mapper namespace="com.erp.dao.MenuDAO">
     <update id="setMenu" parameterType="com.erp.dto.MenuDTO">
         UPDATE menu
-        SET
-            menu_code = #{menuCode},
-            menu_name = #{menuName},
-            menu_explain = #{menuExplain},
-            menu_image = #{menuImage},
-            menu_price = #{menuPrice},
+        SET menu_code      = #{menuCode},
+            menu_name      = #{menuName},
+            menu_explain   = #{menuExplain},
+            menu_image     = #{menuImage},
+            menu_price     = #{menuPrice},
             release_status = #{releaseStatus},
-            edit_date = NOW()
+            edit_date      = NOW()
         WHERE menu_no = #{menuNo}
     </update>
 
     <insert id="addMenu" parameterType="com.erp.dto.MenuDTO">
-        INSERT INTO menu (
-            menu_name,
-            menu_code,
-            menu_category,
-            menu_explain,
-            size,
-            menu_image,
-            menu_price,
-            release_status,
-            in_date
-        )VALUES (
-            #{menuName},
-            #{menuCode},
-            #{menuCategory},
-            #{menuExplain},
-            #{size},
-            #{menuImage},
-            #{menuPrice},
-            #{releaseStatus},
-            NOW()
-            )
+        INSERT INTO menu (menu_name,
+                          menu_code,
+                          menu_category,
+                          menu_explain,
+                          size,
+                          menu_image,
+                          menu_price,
+                          release_status,
+                          in_date)
+        VALUES (#{menuName},
+                #{menuCode},
+                #{menuCategory},
+                #{menuExplain},
+                #{size},
+                #{menuImage},
+                #{menuPrice},
+                #{releaseStatus},
+                NOW())
     </insert>
     <update id="removeMenu">
         UPDATE menu
         SET del_date = NOW()
         WHERE menu_no = #{menuNo}
     </update>
-    <select id="getAllMenu" resultType="com.erp.dto.MenuDTO">
-        SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
+    <select id="getMenuList" resultType="com.erp.dto.MenuDTO">
+        SELECT
+        menu_no, menu_code, menu_name, menu_category,size, menu_price, release_status, menu_image
         FROM menu
-        WHERE del_date IS NULL;
-    </select>
-    <select id="getMenuByCategory" resultType="com.erp.dto.MenuDTO">
-        SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
-        FROM menu
-        WHERE menu_category = #{menuCategory}
-          AND del_date IS NULL;
-    </select>
-    <select id="getMenuByReleaseStatus" resultType="com.erp.dto.MenuDTO">
-        SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
-        FROM menu
-        WHERE release_status = #{releaseStatus}
-          AND del_date IS NULL;
-    </select>
-    <select id="getMenuByCategoryAndReleaseStatus" resultType="com.erp.dto.MenuDTO">
-        SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
-        FROM menu
-        WHERE menu_category = #{menuCategory} and release_status = #{releaseStatus}
-          AND del_date IS NULL;
+        WHERE del_date IS NULL
+        <if test="menuCategory != null and menuCategory != ''">
+            AND menu_category = #{menuCategory}
+        </if>
+        <if test="releaseStatus != null and releaseStatus != ''">
+            AND release_status = #{releaseStatus}
+        </if>
     </select>
     <select id="getMenuByMenuCode" resultType="com.erp.dto.MenuDTO">
         SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
         FROM menu
         WHERE menu_code = #{menuCode}
-          AND del_date IS NULL;
-    </select>
+          AND del_date IS NULL; </select>
     <select id="getMenuByMenuNo" resultType="com.erp.dto.MenuDTO">
         SELECT menu_no, menu_code, menu_name, menu_category, size, menu_price, release_status, menu_image
         FROM menu
         WHERE menu_no = #{menuNo}
-          AND del_date IS NULL;
-    </select>
+          AND del_date IS NULL; </select>
 
 </mapper>

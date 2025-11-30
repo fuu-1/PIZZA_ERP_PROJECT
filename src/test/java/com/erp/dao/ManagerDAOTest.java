@@ -4,11 +4,22 @@ import com.erp.dto.ManagerDTO;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 @SpringBootTest
 public class ManagerDAOTest {
     @Autowired
     ManagerDAO managerDAO;
+    @Autowired
+    BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
+    @Test
+    void pw(){
+        String raw = "123qwe";
+        String raw2= "1q2w3e4r";
+        String encode = encoder.encode(raw2);
+        System.out.println(encode);
+    }
+
 
     @Test
     void addManager() {

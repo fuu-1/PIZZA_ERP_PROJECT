@@ -25,6 +25,56 @@ public class SalesChartService {
     private final StoreSalesRepository storeSalesRepository;
     private final StoreOrderDetailRepository storeOrderDetailRepository;
 
+
+    public SalesChartDTO getSalesChartByStore(Long storeNo, String start, String end, String type) {
+
+        LocalDate startDate = convert(start, type, false);
+        LocalDate endDate   = convert(end, type, true);
+
+        return getStoreSalesChart(storeNo, startDate, endDate, type);
+    }
+
+    public SalesChartDTO getStoreSalesChart(Long storeNo, LocalDate startDate, LocalDate endDate, String type) {
+
+        List<StoreSales> list = storeSalesRepository
+                .findByStore_StoreNoAndSalesDateBetween(storeNo, startDate, endDate);
+
+        Map<String, Integer> grouped;
+
+        switch (type) {
+            case "day":
+                grouped = groupByDay(list);
+                break;
+            case "week":
+                grouped = groupByWeek(list);
+                break;
+            case "month":
+                grouped = groupByMonth(list);
+                break;
+            case "year":
+                grouped = groupByYear(list);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid type: " + type);
+        }
+
+        List<String> labels = grouped.keySet()
+                .stream()
+                .sorted()
+                .toList();
+
+        List<Integer> values = labels.stream()
+                .map(grouped::get)
+                .toList();
+
+        return SalesChartDTO.builder()
+                .labels(labels)
+                .values(values)
+                .build();
+    }
+
+
+
     public List<MenuRatioDTO> getMenuRatio() {
 
         // 최근 30일 구간

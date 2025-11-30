@@ -2,6 +2,13 @@
 <!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.erp.dao.StoreDAO">
+    <select id="getStoreNoByManager" resultType="long">
+        SELECT store_no
+        FROM store
+        WHERE store_manager_id = #{managerId}
+          AND closed_date IS NULL
+    </select>
+
     <select id="countStores" resultType="int">
         select count(*)
         from store

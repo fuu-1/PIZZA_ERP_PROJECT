@@ -6,69 +6,65 @@ function fetchUtil(url, action, method="GET"){
 }
 
 $(document).on("click", "#pagination .page-link", function () {
-    const page = $(this).data("page");  // data-page 값 가져오기
 
-    // 숫자일 경우
+    const page = $(this).data("page");
+    const current = $("#pagination .active a").data("page");
+
+    // 이전
+    if (page === "prev") {
+        if (current > 1) loadPage(current - 1);
+        return;
+    }
+
+    // 다음
+    if (page === "next") {
+        loadPage(current + 1);
+        return;
+    }
+
+    // 숫자
     if (!isNaN(page)) {
         loadPage(page);
     }
-
-    // 이전/다음
-    if (page === "prev") {
-        const current = $("#pagination .active a").data("page");
-        if (current > 1) loadPage(current - 1);
-    }
-
-    if (page === "next") {
-        const current = $("#pagination .active a").data("page");
-        loadPage(current + 1);
-    }
 });
 
-function updatePaginationUI(page, totalPages) {
+
+function updatePaginationUI(currentPage, totalPages) {
+
     const pag = $("#pagination");
-    pag.find(".page-item").removeClass("active");
+    pag.empty();
 
-    // 현재 페이지 활성화
-    pag.find(`a[data-page='${page}']`).closest(".page-item").addClass("active");
+    const blockSize = 5;                        // 한 번에 보여줄 페이지 수
+    const currentBlock = Math.floor((currentPage - 1) / blockSize);
+    const startPage = currentBlock * blockSize + 1;
+    const endPage = Math.min(startPage + blockSize - 1, totalPages);
 
-    // 이전 버튼 비활성화
-    if (page == 1) {
-        pag.find("a[data-page='prev']").closest(".page-item").addClass("disabled");
-    } else {
-        pag.find("a[data-page='prev']").closest(".page-item").removeClass("disabled");
-    }
-
-    // 다음 버튼 비활성화
-    if (page == totalPages) {
-        pag.find("a[data-page='next']").closest(".page-item").addClass("disabled");
-    } else {
-        pag.find("a[data-page='next']").closest(".page-item").removeClass("disabled");
-    }
-
-    renderPagination(page, totalPages);
-}
-
-function renderPagination(page, totalPages) {
-    let html = `
-        <li class="page-item ${page == 1 ? "disabled" : ""}">
+    // -------------------------
+    // 이전 버튼
+    // -------------------------
+    pag.append(`
+        <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
             <a class="page-link" data-page="prev">이전</a>
         </li>
-    `;
+    `);
 
-    for (let i = 1; i <= totalPages; i++) {
-        html += `
-            <li class="page-item ${i == page ? "active" : ""}">
+    // -------------------------
+    // 페이지 번호(5개씩)
+    // -------------------------
+    for (let i = startPage; i <= endPage; i++) {
+        pag.append(`
+            <li class="page-item ${i === currentPage ? "active" : ""}">
                 <a class="page-link" data-page="${i}">${i}</a>
             </li>
-        `;
+        `);
     }
 
-    html += `
-        <li class="page-item ${page == totalPages ? "disabled" : ""}">
+    // -------------------------
+    // 다음 버튼
+    // -------------------------
+    pag.append(`
+        <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
             <a class="page-link" data-page="next">다음</a>
         </li>
-    `;
-
-    $("#pagination").html(html);
+    `);
 }

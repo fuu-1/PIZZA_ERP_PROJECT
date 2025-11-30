@@ -18,5 +18,6 @@ public interface StoreDAO {
     void setStore(StoreDTO store);
     void setStoreRole(StoreDTO store);
     List<StoreDTO> getStoresByAdmin();
+    Long getStoreNoByManager(String managerId);
 
 }

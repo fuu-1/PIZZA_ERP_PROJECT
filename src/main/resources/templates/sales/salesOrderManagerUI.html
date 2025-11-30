@@ -1,306 +1,280 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
-  <meta charset="UTF-8">
-  <title>주문 조회 (본사)</title>
+    <meta charset="UTF-8">
+    <title>주문 조회 (본사)</title>
 
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-  <script src="/js/util.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="/js/util.js"></script>
 
-  <style>
-    body { background-color:#e5e5e5; }
-    .wrapper {
-      max-width: 1500px;
-      margin: 0 auto;
-      background: #fff;
-    }
-    .section-box {
-      background:#fff;
-      border-radius:10px;
-      border:1px solid #ddd;
-      padding:20px;
-    }
-    .table thead th {
-      background-color:#fbfbfb;
-      font-weight:600;
-    }
-    .pagination-wrapper {
-      display:flex;
-      justify-content:center;
-      width:100%;
-    }
-    .w-150 { width:150px; }
-    .w-180 { width:180px; }
-  </style>
+    <style>
+
+      .custom-btn {
+        background-color: #FFEEAA !important;
+        border-color: #FFEEAA !important;
+        color: #000;
+      }
+
+      .custom-btn:hover {
+        background-color: #f2da84 !important;
+        border-color: #f2da84 !important;
+      }
+
+      .custom-container {
+        max-width: 1500px;
+      }
+
+        .section-box {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 20px;
+        }
+
+        .table thead th {
+            background-color: #fbfbfb;
+            font-weight: 600;
+        }
+
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #pagination .page-link {
+            cursor: pointer;
+        }
+
+        .w-150 {
+            width: 150px;
+        }
+
+        .w-180 {
+            width: 180px;
+        }
+    </style>
 </head>
 
-<body class="p-3">
-
-<div class="wrapper border border-secondary">
-
-  <div class="p-3">
-    <div class="fs-3 fw-bold mb-3">주문 조회</div>
-  </div>
-
-  <!-- 검색 영역 -->
-  <div class="px-3 d-flex justify-content-end align-items-center gap-2 mb-2">
-
-    <span class="fw-semibold">주문 일자</span>
-    <input id="dateInput" type="date" class="form-control form-control-sm w-150">
-
-    <span class="fw-semibold ms-3">직영점</span>
-    <input id="storeInput" type="text" class="form-control form-control-sm w-180">
-
-    <button id="searchBtn" class="btn btn-warning btn-sm">검색</button>
-    <button id="resetBtn" class="btn btn-outline-secondary btn-sm">초기화</button>
-  </div>
-
-  <!-- 리스트 -->
-  <div class="px-3 pb-3">
-    <div class="section-box">
-
-      <table class="table table-hover align-middle">
-        <thead>
-        <tr class="text-center">
-          <th>주문 번호</th>
-          <th>주문 일시</th>
-          <th>직영점</th>
-          <th>총 판매 메뉴</th>
-          <th>총 판매 금액</th>
-          <th></th>
-        </tr>
-        </thead>
-
-        <tbody id="orderTableBody">
-
-        <!-- 그대로 둠 -->
-        <tr class='text-center'>
-          <td>10</td>
-          <td>2025-11-18 13:20:00</td>
-          <td>금천구청점</td>
-          <td>1개</td>
-          <td>30,000원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="10" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>9</td>
-          <td>2025-11-18 13:21:00</td>
-          <td>가산점</td>
-          <td>2개</td>
-          <td>32,500원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="9" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>8</td>
-          <td>2025-11-18 13:22:00</td>
-          <td>독산점</td>
-          <td>3개</td>
-          <td>35,000원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="8" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>7</td>
-          <td>2025-11-18 13:23:00</td>
-          <td>신도림점</td>
-          <td>4개</td>
-          <td>37,500원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="7" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>6</td>
-          <td>2025-11-18 13:24:00</td>
-          <td>신길점</td>
-          <td>5개</td>
-          <td>40,000원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="6" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>5</td>
-          <td>2025-11-18 13:25:00</td>
-          <td>수원점</td>
-          <td>1개</td>
-          <td>42,500원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="5" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>4</td>
-          <td>2025-11-18 13:26:00</td>
-          <td>인천점</td>
-          <td>2개</td>
-          <td>45,000원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="4" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>3</td>
-          <td>2025-11-18 13:27:00</td>
-          <td>광주점</td>
-          <td>3개</td>
-          <td>47,500원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="3" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>2</td>
-          <td>2025-11-18 13:28:00</td>
-          <td>대구점</td>
-          <td>4개</td>
-          <td>50,000원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="2" width="24"></td>
-        </tr>
-
-        <tr class='text-center'>
-          <td>1</td>
-          <td>2025-11-18 13:29:00</td>
-          <td>부산점</td>
-          <td>5개</td>
-          <td>52,500원</td>
-          <td><img src="/image/detail.png" class="detailBtn" data-orderno="1" width="24"></td>
-        </tr>
-
-        </tbody>
-      </table>
-
-      <!-- 페이지네이션 -->
-      <nav>
-        <ul class="pagination justify-content-center" id="pagination">
-          <li class="page-item disabled">
-            <a class="page-link" data-page="prev">이전</a>
-          </li>
-          <li class="page-item active">
-            <a class="page-link" data-page="1">1</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" data-page="2">2</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" data-page="3">3</a>
-          </li>
-          <li class="page-item">
-            <a class="page-link" data-page="next">다음</a>
-          </li>
-        </ul>
-      </nav>
-
+<body class="bg-light py-3">
+<header th:replace="fragments/toolBarManager :: toolBarManager"></header>
+<div class="container custom-container mt-5">
+    <div class="bg-white border rounded p-4">
+    <div class="p-3">
+        <div class="fs-3 fw-bold mb-3">주문 조회</div>
     </div>
-  </div>
+
+    <!-- 검색 영역 -->
+    <div class="px-3 d-flex justify-content-end align-items-center gap-2 mb-2">
+
+        <span class="fw-semibold">주문 일자</span>
+        <input id="dateInput" type="date" class="form-control form-control-sm w-150">
+
+        <span class="fw-semibold ms-3">직영점</span>
+        <input id="storeInput" type="text" class="form-control form-control-sm w-180">
+
+        <button id="searchBtn" class="btn custom-btn">검색</button>
+        <button id="resetBtn" class="btn btn-outline-secondary">초기화</button>
+    </div>
+
+    <!-- 리스트 -->
+    <div class="px-3 pb-3">
+        <div class="section-box">
+
+            <table class="table table-hover align-middle" id="salesOrderList">
+                <thead>
+                <tr class="text-center">
+                    <th>주문 번호</th>
+                    <th>주문 일시</th>
+                    <th>직영점</th>
+                    <th>총 판매 메뉴</th>
+                    <th>총 판매 금액</th>
+                    <th>상세보기</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                </tbody>
+            </table>
+
+            <!-- ▼ 페이지네이션 추가 -->
+            <nav>
+                <ul class="pagination justify-content-center" id="pagination">
+                </ul>
+            </nav>
+            <!-- ▲ 페이지네이션 끝 -->
+
+        </div>
+    </div>
 
 </div>
-
+</div>
 <!-- ============================
      상세 모달
 ============================ -->
 <div class="modal fade" id="orderDetailModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title fw-bold">주문 상세보기</h5>
-        <button class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
+    <div class="modal-dialog modal-dialog-centered" style="max-width:520px;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">주문 상세보기</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
 
-      <div class="modal-body">
+            <div class="modal-body">
 
-        <div class="mb-2">
-          <span class="fw-semibold">주문 일시</span>
-          <span id="detailOrderDate" class="ms-2"></span>
+                <div class="mb-2">
+                    <span class="fw-semibold">주문 일시</span>
+                    <span id="detailOrderDate" class="ms-2"></span>
+                </div>
+
+                <div class="mb-3">
+                    <span class="fw-semibold">직영점명</span>
+                    <span id="detailStoreName" class="ms-2"></span>
+                </div>
+
+                <table class="table table-bordered text-center align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>메뉴</th>
+                        <th>사이즈</th>
+                        <th>가격</th>
+                        <th>수량</th>
+                        <th>총 금액</th>
+                    </tr>
+                    </thead>
+                    <tbody id="detailMenuList"></tbody>
+                </table>
+
+                <div class="text-end fw-bold">
+                    총 결제 금액 <span id="detailTotalPrice"></span>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn custom-btn" data-bs-dismiss="modal">닫기</button>
+            </div>
         </div>
-
-        <div class="mb-3">
-          <span class="fw-semibold">직영점명</span>
-          <span id="detailStoreName" class="ms-2"></span>
-        </div>
-
-        <table class="table table-bordered text-center align-middle">
-          <thead class="table-light">
-          <tr>
-            <th>메뉴</th><th>사이즈</th><th>가격</th><th>수량</th><th>총 금액</th>
-          </tr>
-          </thead>
-          <tbody id="detailMenuList"></tbody>
-        </table>
-
-        <div class="text-end fw-bold">
-          총 결제 금액 <span id="detailTotalPrice"></span>
-        </div>
-
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-warning" data-bs-dismiss="modal">닫기</button>
-      </div>
     </div>
-  </div>
 </div>
 
 <!-- ============================
      SCRIPT (jQuery)
 ============================ -->
+<script type="application/javascript" src="/js/util.js"></script>
 <script>
+    const salesOrderTable = $("#salesOrderList");
 
-  /* 샘플 상세 데이터 */
-  const sampleDetailData = {};
-  for (let n = 1; n <= 10; n++) {
-    sampleDetailData[n] = {
-      orderDate: "2025-11-18 13:25:00",
-      storeName: "직영점 " + n,
-      menus: [
-        {name:"페퍼로니 피자", size:"라지", price:25000, qty:1},
-        {name:"치즈 피자", size:"라지", price:20000, qty:2}
-      ]
-    };
-  }
+    function loadPage(pageNo, date = null, storeName = null) {
+        const params = new URLSearchParams();
 
-  const orderModal = new bootstrap.Modal(document.getElementById("orderDetailModal"));
+        if (date) params.append("date", date);
+        if (storeName) params.append("storeName", storeName);
 
-  /* 상세 모달 */
-  $(document).on("click", ".detailBtn", function () {
-    const orderNo = $(this).data("orderno");
-    const data = sampleDetailData[orderNo];
+        fetchUtil(`/salesOrder/salesOrderList/${pageNo}?${params.toString()}`, data => {
+            loadSalesOrderList(data.list);
+            updatePaginationUI(data.pageNo, data.totalPages);
+        });
+    }
 
-    $("#detailOrderDate").text(data.orderDate);
-    $("#detailStoreName").text(data.storeName);
 
-    let total = 0;
-    $("#detailMenuList").empty();
+    function loadSalesOrderList(data) {
+        const tbody = salesOrderTable.find("tbody");
+        tbody.empty();
 
-    data.menus.forEach(m => {
-      const sum = m.price * m.qty;
-      total += sum;
+        data.forEach(salesOrder => {
+            let row = `
+              <tr class="text-center">
+                  <td data-salesorderno="${salesOrder.salesOrderNo}">
+                      ${salesOrder.salesOrderNo}
+                  </td>
+                  <td>${salesOrder.salesOrderDatetime}</td>
+                  <td>${salesOrder.storeName}</td>
+                  <td>${salesOrder.salesOrderCount}개</td>
+                  <td>${salesOrder.salesOrderAmount}원</td>
+                  <td>
+                    <button
+                        type="button"
+                        class="btn btn-sm detailBtn"
+                        data-salesorderno="${salesOrder.salesOrderNo}">
+                        <i class="bi bi-file-earmark-text" style="font-size: 1.3rem;"></i>
+                    </button>
+                  </td>
+              </tr>
+            `;
 
-      $("#detailMenuList").append(`
-        <tr>
-          <td>${m.name}</td>
-          <td>${m.size}</td>
-          <td>${m.price.toLocaleString()} 원</td>
-          <td>${m.qty}</td>
-          <td>${sum.toLocaleString()} 원</td>
-        </tr>
-      `);
+            tbody.append(row);
+        })
+    }
+
+    $(window).on("load", function () {
+        loadPage(1);
     });
 
-    $("#detailTotalPrice").text(total.toLocaleString() + " 원");
+    let orderModal;
 
-    orderModal.show();
-  });
+    $(function () {
+      orderModal = new bootstrap.Modal(document.getElementById("orderDetailModal"));
+    });
 
-  /* 검색 / 초기화 */
-  $("#resetBtn").on("click", function () {
-    $("#dateInput").val("");
-    $("#storeInput").val("");
-  });
+    /* 상세 모달 */
+    $(document).on("click", ".detailBtn", function () {
+      const salesOrderNo = $(this).data("salesorderno");
 
-  $("#searchBtn").on("click", function () {
-    alert("검색 기능은 백엔드 연동 후 작동합니다.");
-  });
+      fetchUtil(`/salesOrder/salesOrderDetail/${salesOrderNo}`, data => {
+        console.log(data);
+        $("#detailOrderDate").text(data.salesOrderDatetime);
+        $("#detailStoreName").text(data.storeName);
+        $("#detailMenuList").empty();
+
+        data.menuList.forEach(m => {
+          $("#detailMenuList").append(`
+                <tr>
+                  <td>${m.menuName}</td>
+                  <td>${m.size}</td>
+                  <td>${m.price.toLocaleString()} 원</td>
+                  <td>${m.count}</td>
+                  <td>${m.totalPrice.toLocaleString()} 원</td>
+                </tr>
+            `);
+        });
+
+        $("#detailTotalPrice").text(data.totalPrice.toLocaleString() + " 원");
+
+        orderModal.show();
+      });
+    });
+
+
+    $("#dateInput").on("change", function () {
+        const date = $(this).val();
+        const storeName = $("#storeInput").val();
+
+        loadPage(1, date, storeName);
+    });
+
+    $("#storeInput").on("input", function () {
+        const date = $("#dateInput").val();
+        const storeName = $(this).val();
+
+        loadPage(1, date, storeName);
+    })
+
+    /* 검색 / 초기화 */
+    $("#resetBtn").on("click", function () {
+        $("#dateInput").val("");
+        $("#storeInput").val("");
+
+        loadPage(1);
+    });
+
+    $("#searchBtn").on("click", function () {
+        alert("검색 기능은 백엔드 연동 후 작동합니다.");
+    });
 
 </script>
 

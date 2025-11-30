@@ -6,26 +6,27 @@
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- 공통 util.js -->
+    <script src="/js/util.js"></script>
 
     <style>
         body { background-color:#fdfdfd; }
         .layout-container { max-width:1500px; margin:0 auto; }
+
         .w-150 { width:150px; }
         .w-120 { width:120px; }
-        .w-80  { width:80px; }
-        .kpi-card {
-            background:#fff; border:1px solid #ccc;
-            border-radius:10px; padding:18px; text-align:center;
-        }
+
+        .kpi-card { background:#fff; border:1px solid #ccc; border-radius:10px; padding:18px; text-align:center; }
         .kpi-title { font-size:14px; }
         .kpi-value { font-size:22px; font-weight:600; }
-        .section-box {
-            background:#fff; border:1px solid #ddd;
-            border-radius:10px; padding:20px;
-        }
-        #listPage { display:none; }
+
+        .section-box { background:#fff; border:1px solid #ddd; border-radius:10px; padding:20px; }
+
         .detail-icon { width:24px; cursor:pointer; }
+        #listPage { display:none; }
     </style>
 </head>
 
@@ -33,7 +34,7 @@
 
 <div class="border border-primary p-2 layout-container">
 
-    <!-- 보기 -->
+    <!-- 보기 버튼 -->
     <div class="mt-3 px-2">
         <div class="d-flex align-items-center mb-2">
             <span class="me-2">보기</span>
@@ -44,31 +45,27 @@
         </div>
     </div>
 
-    <!-- =========================
+    <!-- ============================
          CHART PAGE
-    ========================= -->
+    ============================ -->
     <div id="chartPage">
 
-        <!-- 라디오 + 조회기간 -->
         <div class="d-flex align-items-center flex-wrap gap-3 mb-3 px-2">
 
-            <!-- 라디오 버튼 -->
+            <!-- 라디오 -->
             <div>
                 <label class="form-check form-check-inline">
                     <input type="radio" name="period" id="day" class="form-check-input">
                     <span>일별</span>
                 </label>
-
                 <label class="form-check form-check-inline">
                     <input type="radio" name="period" id="week" class="form-check-input">
                     <span>주별</span>
                 </label>
-
                 <label class="form-check form-check-inline">
                     <input type="radio" name="period" id="month" class="form-check-input" checked>
                     <span>월별</span>
                 </label>
-
                 <label class="form-check form-check-inline">
                     <input type="radio" name="period" id="year" class="form-check-input">
                     <span>연별</span>
@@ -91,30 +88,10 @@
 
         <!-- KPI -->
         <div class="row g-3 mb-3 px-2">
-            <div class="col-md-3">
-                <div class="kpi-card">
-                    <div class="kpi-title">전체 매출</div>
-                    <div class="kpi-value">450,000,000</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card">
-                    <div class="kpi-title">총 판매 수량</div>
-                    <div class="kpi-value">120,000</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card">
-                    <div class="kpi-title">평균 직영점 매출</div>
-                    <div class="kpi-value">30,400</div>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card">
-                    <div class="kpi-title kpi-compare">전월 대비 매출 성장</div>
-                    <div class="kpi-value">5%</div>
-                </div>
-            </div>
+            <div class="col-md-3"><div class="kpi-card"><div class="kpi-title">전체 매출</div><div class="kpi-value" id="kpi-totalSales"></div></div></div>
+            <div class="col-md-3"><div class="kpi-card"><div class="kpi-title">총 판매 수량</div><div class="kpi-value" id="kpi-totalMenu"></div></div></div>
+            <div class="col-md-3"><div class="kpi-card"><div class="kpi-title">평균 직영점 매출</div><div class="kpi-value" id="kpi-avgStore"></div></div></div>
+            <div class="col-md-3"><div class="kpi-card"><div class="kpi-title">전주 대비 매출 증가</div><div class="kpi-value" id="kpi-growth"></div></div></div>
         </div>
 
         <!-- 메인 차트 -->
@@ -123,7 +100,7 @@
             <canvas id="mainChart" height="90"></canvas>
         </div>
 
-        <!-- 서브 차트 -->
+        <!-- TOP5 & 메뉴비중 -->
         <div class="row g-3 mb-3 px-2">
             <div class="col-md-6">
                 <div class="section-box">
@@ -141,102 +118,73 @@
         </div>
     </div>
 
-    <!-- ====================================
-         LIST PAGE (본사)
-    ==================================== -->
-    <div id="listPage">
+    <!-- ============================
+         LIST PAGE
+    ============================ -->
+    <div id="listPage" style="display:none;">
 
-        <div class="px-3 pt-3">
-            <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+        <div class="section-box mx-2 mt-3">
+            <h6 class="fw-bold mb-3">직영점별 매출 리스트</h6>
 
-                <span class="fw-semibold me-1">조회기간</span>
-
-                <input type="date" class="form-control form-control-sm w-150">
+            <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                <span class="fw-semibold">조회기간</span>
+                <input type="date" id="list-start" class="form-control form-control-sm w-150">
                 <span>~</span>
-                <input type="date" class="form-control form-control-sm w-150">
+                <input type="date" id="list-end" class="form-control form-control-sm w-150">
 
                 <span class="fw-semibold ms-3">직영점명</span>
 
-                <div class="input-group input-group-sm w-230">
-                    <input type="text" class="form-control" placeholder="직영점명">
-                    <button class="btn btn-outline-secondary btn-sm" type="button">검색</button>
-                </div>
-
-            </div>
-        </div>
-
-        <div class="px-3 pb-3">
-            <div class="section-box">
-                <table class="table table-hover align-middle mb-3">
-                    <thead>
-                    <tr class="text-center">
-                        <th>번호</th>
-                        <th>직영점명</th>
-                        <th>지역</th>
-                        <th>전일대비</th>
-                        <th>주문수</th>
-                        <th>매출액</th>
-                        <th>판매날짜</th>
-                        <th></th>
-                    </tr>
-                    </thead>
-                    <tbody id="storeTable"></tbody>
-                </table>
-
-                <div class="d-flex justify-content-center mb-3" id="paginationArea"></div>
-
-                <div class="d-flex justify-content-end">
-                    <select id="pageSize" class="form-select form-select-sm w-80">
-                        <option value="5" selected>5개</option>
-                        <option value="10">10개</option>
-                    </select>
+                <div class="input-group input-group-sm" style="width: 220px;">
+                    <input type="text" id="list-storeName" class="form-control" placeholder="지점명 검색">
+                    <button class="btn btn-outline-secondary" id="list-searchBtn">검색</button>
                 </div>
             </div>
+
+            <table class="table table-hover align-middle mb-3">
+                <thead>
+                <tr class="text-center">
+                    <th>번호</th>
+                    <th>직영점명</th>
+                    <th>지역</th>
+                    <th>전일대비</th>
+                    <th>주문수</th>
+                    <th>매출액</th>
+                    <th>판매날짜</th>
+                    <th></th>
+                </tr>
+                </thead>
+                <tbody id="storeTable"></tbody>
+            </table>
+
+            <!-- 페이지네이션 -->
+            <div class="d-flex justify-content-center mb-3">
+                <ul class="pagination pagination-sm" id="pagination"></ul>
+            </div>
+
         </div>
 
     </div>
+
 </div>
 
-<!-- ===================================
-     SCRIPT
-=================================== -->
 <script>
-    /* 보기 버튼 ------------------------- */
-    $("#chartBtn").on("click", function(){ showChart(); });
-    $("#listBtn").on("click", function(){ showList(); });
 
+    /* 보기 버튼 */
     function updateModeButtons(mode){
-        $("#chartBtn")
-            .toggleClass("btn-warning", mode === "chart")
+        $("#chartPage").toggle(mode === "chart");
+        $("#listPage").toggle(mode === "list");
+
+        $("#chartBtn").toggleClass("btn-warning", mode === "chart")
             .toggleClass("btn-outline-secondary", mode !== "chart");
 
-        $("#listBtn")
-            .toggleClass("btn-warning", mode === "list")
+        $("#listBtn").toggleClass("btn-warning", mode === "list")
             .toggleClass("btn-outline-secondary", mode !== "list");
     }
 
-    function showChart(){
-        $("#chartPage").show();
-        $("#listPage").hide();
-        updateModeButtons("chart");
-    }
+    $("#chartBtn").on("click", () => updateModeButtons("chart"));
+    $("#listBtn").on("click", () => updateModeButtons("list"));
 
-    function showList(){
-        $("#chartPage").hide();
-        $("#listPage").show();
-        updateModeButtons("list");
-    }
-
-    /* KPI 텍스트 변경 ------------------- */
-    function updateKpiTitle(period){
-        const t = $(".kpi-compare");
-        if(period === "day")  t.text("전일 대비 매출 성장");
-        if(period === "week") t.text("전주 대비 매출 성장");
-        if(period === "month")t.text("전월 대비 매출 성장");
-        if(period === "year") t.text("전년 대비 매출 성장");
-    }
-
-    /* 조회기간 INPUT 변경 --------------- */
+    /* 조회기간 타입 변경 */
     function updatePeriodInputs(type){
         const box = $("#periodInputs");
 
@@ -247,73 +195,45 @@
             <input id="endInput" type="date" class="form-control form-control-sm w-150">
         `);
         }
-        if(type === "week"){
+        else if(type === "week"){
             box.html(`
             <input id="startInput" type="week" class="form-control form-control-sm w-150">
             <span>~</span>
             <input id="endInput" type="week" class="form-control form-control-sm w-150">
         `);
         }
-        if(type === "month"){
+        else if(type === "month"){
             box.html(`
             <input id="startInput" type="month" class="form-control form-control-sm w-150">
             <span>~</span>
             <input id="endInput" type="month" class="form-control form-control-sm w-150">
         `);
         }
-        if(type === "year"){
+        else {
             box.html(`
             <input id="startInput" type="number" class="form-control form-control-sm w-120" placeholder="연도 입력">
             <span>~</span>
             <input id="endInput" type="number" class="form-control form-control-sm w-120" placeholder="연도 입력">
         `);
         }
-
-        applyMinMax();
     }
 
-    /* 날짜 역순 방지 -------------------- */
-    function applyMinMax(){
-        const s = $("#startInput");
-        const e = $("#endInput");
-
-        if(!s.length || !e.length) return;
-
-        s.on("change", function(){
-            e.attr("min", s.val());
-            if(e.val() && e.val() < s.val()){
-                e.val(s.val());
-            }
-        });
-
-        e.on("change", function(){
-            s.attr("max", e.val());
-            if(s.val() && s.val() > e.val()){
-                s.val(e.val());
-            }
-        });
-    }
-
-    /* 라디오 변경 ---------------------- */
     $("input[name='period']").on("change", function(){
-        const id = $(this).attr("id");
-        updatePeriodInputs(id);
+        updatePeriodInputs($(this).attr("id"));
     });
 
-    /* 메인 차트 ------------------------ */
+    /* --- CHART PAGE --- */
     let mainChart;
 
     function createMainChart(labels, values){
         const ctx = $("#mainChart")[0].getContext("2d");
 
-        if(mainChart){
-            mainChart.destroy();
-        }
+        if(mainChart){ mainChart.destroy(); }
 
         mainChart = new Chart(ctx, {
             type: "line",
             data: {
-                labels: labels,
+                labels,
                 datasets: [{
                     label: "매출액",
                     data: values,
@@ -326,160 +246,246 @@
         });
     }
 
-    /* 조회 버튼 ------------------------ */
     $("#getSalesBtn").on("click", function(){
-
         const type = $("input[name='period']:checked").attr("id");
-        updateKpiTitle(type);
-        let s = $("#startInput").val();
-        let e = $("#endInput").val();
+        const s = $("#startInput").val();
+        const e = $("#endInput").val();
 
         if(!s || !e){
-            alert("조회기간을 모두 입력하세요.");
+            alert("조회기간을 입력하세요.");
             return;
         }
 
-
-        fetch(`/salesChart?startDate=${s}&endDate=${e}&type=${type}`)
-            .then(res => res.json())
-            .then(data => {
-                // data = { labels: [...], values: [...] }
-                createMainChart(data.labels, data.values);
-            })
-            .catch(err => {
-                console.error(err);
-                alert("조회 중 오류가 발생했습니다.");
-            });
-
-        $(".kpi-value").show();
+        fetchUtil(`/salesChart?startDate=${s}&endDate=${e}&type=${type}`, data => {
+            createMainChart(data.labels, data.values);
+            loadKPI(type, s, e);
+        });
     });
 
-    /* ================================
-       LIST PAGE TABLE (샘플)
-    ================================ */
-    const sampleData = [
-        {name:"강남직영점", addr:"서울시 강남구 일원동 664-9", diff:"5.3% 상승", order:7000, price:"68,000,000", date:"2025.10.1"},
-        {name:"부산직영점", addr:"부산 서구 쌍용동 1201-1", diff:"3.1% 상승", order:5000, price:"56,000,000", date:"2025.10.1"},
-        {name:"대전직영점", addr:"대전 서구 도산로 335", diff:"2.8% 상승", order:5500, price:"47,500,000", date:"2025.10.1"},
-        {name:"관악직영점", addr:"서울시 관악구 인헌12다길", diff:"10% 상승", order:9500, price:"97,000,000", date:"2025.10.1"},
-        {name:"금천직영점", addr:"서울시 금천구 독산동 331", diff:"5% 하락", order:6500, price:"38,000,000", date:"2025.10.1"},
-        {name:"수원직영점", addr:"경기도 수원시 영통구 55", diff:"1.2% 상승", order:7200, price:"58,000,000", date:"2025.10.1"},
-        {name:"인천직영점", addr:"인천 남동구 논현동 11", diff:"4.1% 상승", order:8200, price:"74,000,000", date:"2025.10.1"},
-        {name:"광주직영점", addr:"광주 북구 일곡동 22", diff:"2.2% 상승", order:4300, price:"39,000,000", date:"2025.10.1"},
-        {name:"대구직영점", addr:"대구 달서구 본리동 88", diff:"7.5% 상승", order:9000, price:"83,000,000", date:"2025.10.1"},
-        {name:"창원직영점", addr:"창원시 성산구 상남동 45", diff:"3.8% 상승", order:6100, price:"49,000,000", date:"2025.10.1"}
-    ];
+    /* TOP5 */
+    let top5Chart;
 
-    let currentPage = 1;
+    function createTop5Chart(labels, values){
+        const ctx = $("#storeSalesTop5Chart")[0].getContext("2d");
 
-    function loadTable(){
-        const tbody    = $("#storeTable");
-        const pageSize = Number($("#pageSize").val());
+        if(top5Chart){ top5Chart.destroy(); }
+
+        top5Chart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels,
+                datasets: [{ label: "매출금액", data: values, backgroundColor: ["#0d6efd","#6f42c1","#d63384","#fd7e14","#198754"] }]
+            },
+            options: { indexAxis:"y" }
+        });
+    }
+
+    function loadTop5Chart(){
+        fetchUtil("/totalStoreSales", data => {
+            createTop5Chart(data.map(x => x.storeName), data.map(x => x.totalSales));
+        });
+    }
+
+    /* 메뉴비중 */
+    let menuChart;
+
+    function createMenuRatioChart(labels, values){
+        const ctx = $("#menuCountChart")[0].getContext("2d");
+
+        if(menuChart){ menuChart.destroy(); }
+
+        const baseColors = ["#ff6384","#36a2eb","#ffcd56","#4bc0c0","#9966ff"];
+        const colors = labels.map((_, i) => baseColors[i % baseColors.length]);
+
+        menuChart = new Chart(ctx, {
+            type: "doughnut",
+            data: { labels, datasets:[{ data: values, backgroundColor: colors }] },
+            plugins:[ChartDataLabels],
+            options:{
+                plugins:{
+                    legend:{ display:false },
+                    datalabels:{
+                        color:"#000",
+                        formatter:(value, ctx)=>{
+                            const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
+                            return (value / total * 100).toFixed(1) + "%";
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    function loadMenuRatio(){
+        fetchUtil("/menuRatio", data => {
+
+            data.sort((a,b)=>b.salesAmount - a.salesAmount);
+
+            const top5 = data.slice(0,5);
+            const etc = data.slice(5);
+            const etcTotal = etc.reduce((s,x)=>s+x.salesAmount,0);
+
+            const labels = top5.map(x=>x.menuName);
+            const values = top5.map(x=>x.salesAmount);
+
+            if(etcTotal > 0){
+                labels.push("기타");
+                values.push(etcTotal);
+            }
+
+            createMenuRatioChart(labels, values);
+        });
+    }
+
+    /* KPI */
+    function loadKPI(type, start, end){
+        fetchUtil(`/KPI?type=${type}&startDate=${start}&endDate=${end}`, data => {
+            $("#kpi-totalSales").text(data.totalSales.toLocaleString());
+            $("#kpi-totalMenu").text(data.totalMenuCount.toLocaleString());
+            $("#kpi-avgStore").text(data.avgStoreSales.toLocaleString());
+            $("#kpi-growth").text(data.growthRate.toFixed(1) + "%");
+        });
+    }
+
+
+    /* --- LIST PAGE --- */
+    let listCurrentPage = 1;
+
+    function loadList(page){
+        listCurrentPage = page;
+
+        let start = $("#list-start").val();
+        let end   = $("#list-end").val();
+        const storeName = $("#list-storeName").val();
+
+        if(!start || !end){
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const yesterday = new Date(now);
+            yesterday.setDate(yesterday.getDate() - 1);
+
+            const toDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+            start = toDate(monthStart);
+            end   = toDate(yesterday);
+
+            $("#list-start").val(start);
+            $("#list-end").val(end);
+        }
+
+        fetchUtil(`/salesList?startDate=${start}&endDate=${end}&storeName=${storeName}&page=${page}`, data => {
+            renderList(data.list);
+            renderPagination(data.totalPages, data.currentPage);
+        });
+    }
+
+    function renderList(list){
+        const tbody = $("#storeTable");
         tbody.empty();
 
-        const start = (currentPage - 1) * pageSize;
-        const end   = start + pageSize;
+        if(!list || list.length === 0){
+            tbody.append(`<tr><td colspan="8" class="text-center">데이터가 없습니다.</td></tr>`);
+            return;
+        }
 
-        const pageData = sampleData.slice(start, end);
-
-        pageData.forEach(function(item, idx){
-            const rowNo = start + idx + 1;
+        list.forEach((item, index) => {
+            const rowNo = (listCurrentPage - 1) * 10 + (index + 1);
 
             tbody.append(`
             <tr class="text-center">
                 <td>${rowNo}</td>
-                <td>${item.name}</td>
-                <td class="text-start">${item.addr}</td>
-                <td>${item.diff}</td>
-                <td>${item.order.toLocaleString()}</td>
-                <td>${item.price}</td>
-                <td>${item.date}</td>
-                <td><img src="/image/detail.png" class="detailBtn detail-icon"></td>
+                <td>${item.storeName}</td>
+                <td class="text-start">${item.address}</td>
+                <td>${item.growthRate || "-"}</td>
+                <td>${item.orderCount.toLocaleString()}</td>
+                <td>${item.salesAmount.toLocaleString()}</td>
+                <td>${item.salesDate}</td>
+                <td>
+                    <img src="/image/detail.png" class="detailBtn detail-icon"
+                        data-store-no="${item.storeNo}"
+                        data-sales-date="${item.salesDate}">
+                </td>
             </tr>
         `);
         });
-
-        createPagination();
     }
 
-    function createPagination(){
-        const pageSize   = Number($("#pageSize").val());
-        const totalPages = Math.ceil(sampleData.length / pageSize);
-        const area       = $("#paginationArea");
+    /* ⭐ util.js 방식으로 완전 호환되는 pagination */
+    function renderPagination(totalPages, currentPage){
+        const $pag = $("#pagination");
+        $pag.empty();
 
-        let html = `<ul class="pagination pagination-sm">`;
-
-        html += `
+        // prev
+        $pag.append(`
         <li class="page-item ${currentPage === 1 ? "disabled" : ""}">
-            <a class="page-link" href="#" onclick="movePage(${currentPage - 1}); return false;">&lt;</a>
+            <a class="page-link" href="#" onclick="loadList(${currentPage - 1}); return false;">&lt;</a>
         </li>
-    `;
+    `);
 
+        // numbers
         for(let i = 1; i <= totalPages; i++){
-            html += `
+            $pag.append(`
             <li class="page-item ${currentPage === i ? "active" : ""}">
-                <a class="page-link" href="#" onclick="movePage(${i}); return false;">${i}</a>
+                <a class="page-link" href="#" onclick="loadList(${i}); return false;">${i}</a>
             </li>
-        `;
+        `);
         }
 
-        html += `
+        // next
+        $pag.append(`
         <li class="page-item ${currentPage === totalPages ? "disabled" : ""}">
-            <a class="page-link" href="#" onclick="movePage(${currentPage + 1}); return false;">&gt;</a>
+            <a class="page-link" href="#" onclick="loadList(${currentPage + 1}); return false;">&gt;</a>
         </li>
-    `;
-
-        html += `</ul>`;
-        area.html(html);
+    `);
     }
 
-    function movePage(num){
-        currentPage = num;
-        loadTable();
-    }
+    /* 검색 */
+    $("#list-searchBtn").on("click", () => loadList(1));
 
-    $("#pageSize").on("change", function(){
-        currentPage = 1;
-        loadTable();
-    });
-
+    /* 상세 이동 */
     $(document).on("click", ".detailBtn", function(){
-        location.href = "salesDetailUI.html";
+        const storeNo = $(this).data("store-no");
+        const date    = $(this).data("sales-date");
+        location.href = `/salesDetailUI?storeNo=${storeNo}&salesDate=${date}`;
     });
 
-    /* 초기 실행 */
+    /* 초기 로딩 */
     $(document).ready(function(){
-        showChart();
-        updatePeriodInputs("month");
-        updateKpiTitle("month");
-        $(".kpi-value").hide();
-        loadTable();
+
+        updateModeButtons("chart");
+
+        $("#day").prop("checked", true);
+        updatePeriodInputs("day");
+
+        // 날짜 계산
+        const today = new Date();
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        const toDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
+        const s = toDate(monthStart);
+        const e = toDate(yesterday);
+
+        $("#startInput").val(s);
+        $("#endInput").val(e);
+
+        // chart
+        fetchUtil(`/salesChart?startDate=${s}&endDate=${e}&type=day`, data => {
+            createMainChart(data.labels, data.values);
+        });
+
+        loadKPI("day", s, e);
+        loadTop5Chart();
+        loadMenuRatio();
+
+        // list page 초기값
+        $("#list-start").val(s);
+        $("#list-end").val(e);
+        loadList(1);
     });
 
-    /* 서브 차트 샘플 */
-    new Chart($("#storeSalesTop5Chart"),{
-        type:'bar',
-        data:{
-            labels:['가산1호점','강릉경포점','부산서면점','가산2호점','부천시청점'],
-            datasets:[{
-                label:'매출금액',
-                data:[820,740,690,650,610],
-                backgroundColor:['#0d6efd','#6f42c1','#d63384','#fd7e14','#198754']
-            }]
-        },
-        options:{ indexAxis:'y' }
-    });
-
-    new Chart($("#menuCountChart"),{
-        type:'doughnut',
-        data:{
-            labels:['페퍼로니','치즈피자','콤비네이션','불고기피자','고구마피자'],
-            datasets:[{
-                data:[25,18,30,15,12],
-                backgroundColor:['#ff6384','#36a2eb','#ffcd56','#4bc0c0','#9966ff']
-            }]
-        }
-    });
 </script>
 
 </body>
