@@ -23,7 +23,10 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long>, S
     JOIN sod.salesOrder so
     WHERE so.salesOrderDatetime BETWEEN :start AND :end
 """)
-    Integer getTotalMenuCount(LocalDateTime startDate, LocalDateTime endDate);
+    Integer getTotalMenuCount(
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 
     @Query("""
            SELECT COUNT(o)
@@ -57,4 +60,18 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long>, S
 """)
     List<SalesOrder> getSalesOrderByStoreAndDate(@Param("storeNo") Long storeNo,
                                                  @Param("salesOrderDate") LocalDate salesOrderDate);
+
+
+    @Query("""
+    SELECT SUM(sod.menuCount)
+    FROM StoreOrderDetail sod
+    JOIN sod.salesOrder so
+    WHERE so.store.storeNo = :storeNo
+      AND so.salesOrderDatetime BETWEEN :start AND :end
+""")
+    Integer getStoreMenuCount(
+            @Param("storeNo") Long storeNo,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
 }

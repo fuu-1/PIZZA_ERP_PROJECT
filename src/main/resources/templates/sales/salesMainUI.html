@@ -270,11 +270,17 @@
 
         if(top5Chart){ top5Chart.destroy(); }
 
+        const colors = ["#0d6efd","#6f42c1","#d63384","#fd7e14","#198754"];  // ✔ 직영점과 동일 색상
+
         top5Chart = new Chart(ctx, {
             type: "bar",
             data: {
                 labels,
-                datasets: [{ label: "매출금액", data: values, backgroundColor: ["#0d6efd","#6f42c1","#d63384","#fd7e14","#198754"] }]
+                datasets: [{
+                    label: "매출금액",
+                    data: values,
+                    backgroundColor: colors.slice(0, labels.length)  // 자동 길이 조절
+                }]
             },
             options: { indexAxis:"y" }
         });
@@ -282,33 +288,68 @@
 
     function loadTop5Chart(){
         fetchUtil("/totalStoreSales", data => {
-            createTop5Chart(data.map(x => x.storeName), data.map(x => x.totalSales));
+            createTop5Chart(
+                data.map(x => x.storeName),
+                data.map(x => x.totalSales)
+            );
         });
     }
 
-    /* 메뉴비중 */
     let menuChart;
 
     function createMenuRatioChart(labels, values){
         const ctx = $("#menuCountChart")[0].getContext("2d");
 
-        if(menuChart){ menuChart.destroy(); }
+        if(menuChart){
+            menuChart.destroy();
+        }
 
-        const baseColors = ["#ff6384","#36a2eb","#ffcd56","#4bc0c0","#9966ff"];
-        const colors = labels.map((_, i) => baseColors[i % baseColors.length]);
+        const baseColors = ["#ff6384", "#36a2eb", "#ffcd56", "#4bc0c0", "#9966ff"];
+        const colors = labels.map((label, i) => {
+            return label === "기타" ? "#c7c7c7" : baseColors[i % baseColors.length];
+        });
 
+        /* ✔ 범례(라벨) 만들기 */
+        let legendHtml = "";
+        labels.forEach((label, i) => {
+            legendHtml += `
+            <span style="display:inline-flex; align-items:center; margin-right:12px;">
+                <span style="
+                    display:inline-block;
+                    width:14px;
+                    height:14px;
+                    background:${colors[i]};
+                    border-radius:3px;
+                    margin-right:4px;
+                "></span>
+                <span style="font-size:13px;">${label}</span>
+            </span>
+        `;
+        });
+        $("#menuLegend").html(legendHtml);
+
+        /* ✔ 차트 생성 */
         menuChart = new Chart(ctx, {
             type: "doughnut",
-            data: { labels, datasets:[{ data: values, backgroundColor: colors }] },
-            plugins:[ChartDataLabels],
-            options:{
-                plugins:{
-                    legend:{ display:false },
-                    datalabels:{
-                        color:"#000",
-                        formatter:(value, ctx)=>{
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors
+                }]
+            },
+            plugins: [ChartDataLabels],
+            options: {
+                plugins: {
+                    legend: { display: false },
+                    datalabels: {
+                        color: "#000",
+                        font: { size: 12, weight: "bold" },
+                        formatter: (value, ctx) => {
                             const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);
-                            return (value / total * 100).toFixed(1) + "%";
+                            const percent = (value / total * 100).toFixed(1);
+                            const label = ctx.chart.data.labels[ctx.dataIndex];
+                            return `${label}\n${percent}%`;
                         }
                     }
                 }
@@ -316,19 +357,20 @@
         });
     }
 
+
     function loadMenuRatio(){
         fetchUtil("/menuRatio", data => {
 
-            data.sort((a,b)=>b.salesAmount - a.salesAmount);
+            data.sort((a, b) => b.salesAmount - a.salesAmount);
 
-            const top5 = data.slice(0,5);
-            const etc = data.slice(5);
-            const etcTotal = etc.reduce((s,x)=>s+x.salesAmount,0);
+            const top5 = data.slice(0, 5);
+            const rest = data.slice(5);
+            const etcTotal = rest.reduce((sum, x) => sum + x.salesAmount, 0);
 
-            const labels = top5.map(x=>x.menuName);
-            const values = top5.map(x=>x.salesAmount);
+            const labels = top5.map(x => x.menuName);
+            const values = top5.map(x => x.salesAmount);
 
-            if(etcTotal > 0){
+            if (etcTotal > 0) {
                 labels.push("기타");
                 values.push(etcTotal);
             }
