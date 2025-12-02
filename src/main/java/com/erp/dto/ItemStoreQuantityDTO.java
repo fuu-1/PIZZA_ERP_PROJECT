@@ -23,5 +23,6 @@ public class ItemStoreQuantityDTO {
     private Integer itemPrice;
 
     private Integer itemQuantity;
-    private Integer limit;
+    private Integer storeLimit;
+    private Integer managerLimit;
 }

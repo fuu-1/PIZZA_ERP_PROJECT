@@ -24,7 +24,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
         i.supplier,
         i.itemPrice,
         ss.currentQuantity,
-        si.storeLimit
+        si.storeLimit,
+        si.managerLimit
     )
     from Item i
     left join StoreItem si on i.itemNo = si.itemNo and si.storeNo = :storeNo

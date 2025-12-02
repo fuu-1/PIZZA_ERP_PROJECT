@@ -509,7 +509,7 @@
                            <td>${item.itemCode}</td>
                            <td>${item.itemName}</td>
                            <td>${item.itemCategory}</td>
-                           <td>${item.limit == null ? "-" : item.limit}</td>
+                           <td>${item.storeLimit == null ? "-" : item.storeLimit}</td>
                            <td class="text-danger fw-semibold">${item.itemQuantity == null ? "0" : item.itemQuantity}</td>
                            <td>${item.supplyUnit}</td>
                            <td data-price="${item.itemPrice}">${(item.itemPrice).toLocaleString()}</td>
