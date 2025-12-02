@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 <meta charset="UTF-8">
 <title>발주 내역</title>
@@ -7,18 +8,22 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js" integrity="sha256-kmHvs0B+OpCW5GVHUNjv9rOmY0IvSIRcf7zGUDTDQM8=" crossorigin="anonymous"></script>
 <script type="application/javascript" src="/js/util.js"></script>
+<script src="/js/modalStoreSearch.js"></script>
 <style>
- body { background:#f8f9fa; font-family:"Noto Sans KR",sans-serif;
-   max-width: 1500px;}
+ body { background:#f8f9fa; font-family:"Noto Sans KR",sans-serif; padding: 0}
+ #content-area{
+   width: 1500px;
+ }
  .card-box { background:#fff; border-radius:12px; padding:20px; border:1px solid #dee2e6;}
  .table thead { background:#e9ecef; font-weight:600;}
 </style>
 </head>
-<body class="p-4">
+<body>
 
+<header th:replace="fragments/toolBar :: toolBar"></header>
+<div class="p-4">
+  <div class="card-box mb-4 container d-flex flex-column" id="content-area">
 <h3 class="fw-bold mb-4">발주 내역</h3>
-
-<div class="card-box mb-4">
 
  <div class="row g-3 mb-3">
    <div class="col-auto">
@@ -54,6 +59,7 @@
    <tbody>
    </tbody>
  </table>
+</div>
   <!-- ▼ 페이지네이션 추가 -->
   <nav>
     <ul class="pagination justify-content-center" id="pagination">
@@ -70,7 +76,6 @@
   </nav>
   <!-- ▲ 페이지네이션 끝 -->
 </div>
-
 
 <!-- 직영점 검색 모달 -->
 <div class="modal fade" id="storeSearchModal" tabindex="-1">
@@ -281,19 +286,6 @@
     }, "PUT");
   }
 
-  function approveItemOrderAsync(orderNo) {
-    return fetch(`/itemOrder/approveItemOrder/${orderNo}`, {
-      method: "PUT",
-    })
-        .then(res => res.json())
-        .then(data => {
-          if (data.message === "Approve ItemOrder Success") {
-            return true;
-          } else {
-            throw new Error("Approve failed for orderNo: " + orderNo);
-          }
-        });
-  }
   // 발주 승인 버튼
   $(document).on("click", ".approve-btn", function(){
     // 이곳에 구현부
@@ -330,6 +322,19 @@
     loadPage(1);
   });
 
+  function approveItemOrderAsync(orderNo) {
+    return fetch(`/itemOrder/approveItemOrder/${orderNo}`, {
+      method: "PUT",
+    })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message === "Approve ItemOrder Success") {
+            return true;
+          } else {
+            throw new Error("Approve failed for orderNo: " + orderNo);
+          }
+        });
+  }
   $(document).on("click", "#approve-all-btn", function(){
     const orderNos = [];
 

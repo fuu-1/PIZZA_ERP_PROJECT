@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 <meta charset="UTF-8">
 <title>발주 내역</title>
@@ -8,9 +9,10 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script type="application/javascript" src="/js/util.js"></script>
 <style>
- body { background:#f8f9fa; font-family:"Noto Sans KR",sans-serif;
-   max-width: 1500px;}
-
+ body { background:#f8f9fa; font-family:"Noto Sans KR",sans-serif; padding: 0;}
+ #content-area{
+   width: 1500px;
+ }
 
  table{
    table-layout: fixed;
@@ -19,11 +21,13 @@
  .table thead { background:#e9ecef; font-weight:600;}
 </style>
 </head>
-<body class="p-4">
+<body>
 
-<h3 class="fw-bold mb-4">발주 내역</h3>
+<header th:replace="fragments/toolBar :: toolBar"></header>
+<div class="p-4">
 
-<div class="card-box mb-4">
+<div class="card-box mb-4 container d-flex flex-column" id="content-area">
+  <h3 class="fw-bold mb-4">발주 내역</h3>
 
  <div class="row g-3 mb-3">
    <div class="col-auto">
@@ -52,6 +56,7 @@
    <tbody>
    </tbody>
  </table>
+</div>
 
   <!-- ▼ 페이지네이션 추가 -->
   <nav>
@@ -92,7 +97,7 @@
 
         <div class="mb-4" id="order-date-modal">요청일자 : 2025-11-09(일) 23 : 22</div>
 
-        <table class="table table-bordered align-middle text-center">
+        <table class="table table-bordered align-middle text-center" id="item_order_detail_table">
           <thead style="background:#f1f1f1;font-weight:600;">
           <tr>
             <th>품목코드</th>
@@ -259,13 +264,6 @@
     cancelItemOrder(selectedRow.find("td").data("orderno"));
   });
 
-  // 클릭 시 주문 입고 상태 변경
-  $("#receive_all_btn").on("click", function(){
-    selectedRow.find(".receive_status").text("입고완료");
-    document.activeElement.blur();   // 포커스 제거
-    $("#orderDetailModal").modal("hide");
-  });
-
   $(document).on("click", ".receive_btn", function(){
     receiveItem($(this), $(this).closest("tr").data("item_order_detail_no"));
   });
@@ -274,12 +272,61 @@
     fetchUtil(`/itemOrder/receiveItemOrder/${itemOrderDetailNo}`,(data)=>{
       if(data.message === "Receive ItemOrderDetail Success"){
         btn.closest("td").html(`<button class="btn btn-outline-secondary btn-sm">입고완료</button>`);
+        loadPage(currentPage);
       }
     }, "PUT");
   }
 
   $(document).on("click", "#view-btn", function(){
     loadPage(1);
+  });
+
+  function receiveItemOrderDetailAsync(itemOrderDetailNo) {
+    return fetch(`/itemOrder/receiveItemOrder/${itemOrderDetailNo}`, {
+      method: "PUT",
+    })
+        .then(res => res.json())
+        .then(data => {
+          if (data.message === "Receive ItemOrderDetail Success") {
+            return true;
+          } else {
+            throw new Error("Receive failed for orderNo: " + itemOrderDetailNo);
+          }
+        });
+  }
+
+  // 클릭 시 주문 입고 상태 변경
+  $(document).on("click", ".receive_all_btn", function(){
+    selectedRow.find(".receive_status").text("입고완료");
+    document.activeElement.blur();   // 포커스 제거
+    $("#orderDetailModal").modal("hide");
+  });
+
+  $(document).on("click", ".receive_all_btn", function(){
+    const orderDetailNos = [];
+
+    $("#item_order_detail_table").find("tr").each(function(){
+      const row = $(this);
+      const status = $(this).find("button").eq(0).text();
+
+      if(status === "입고") orderDetailNos.push(row.data("item_order_detail_no"));
+    });
+
+    if(orderDetailNos.length === 0) {
+      alert("입고 처리할 항목이 없습니다.");
+      return;
+    }
+
+    const promises = orderDetailNos.map(no => receiveItemOrderDetailAsync(no));
+    Promise.all(promises)
+        .then(() => {
+          loadPage(currentPage);
+          $("#orderItemDetailModal").modal("hide");
+        })
+        .catch(err => {
+          console.error(err);
+          alert("일부 승인 중 오류가 발생했습니다.");
+        });
   });
 </script>
 </body>
