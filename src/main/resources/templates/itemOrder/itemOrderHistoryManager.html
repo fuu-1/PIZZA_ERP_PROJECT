@@ -10,10 +10,23 @@
 <script type="application/javascript" src="/js/util.js"></script>
 <script src="/js/modalStoreSearch.js"></script>
 <style>
- body { background:#f8f9fa; font-family:"Noto Sans KR",sans-serif; padding: 0}
+ body {
+   height: 100vh;
+   display: flex;
+   flex-direction: column;
+   margin: 0;
+
+   background:#f8f9fa;
+   font-family:"Noto Sans KR",sans-serif;
+ }
+ .p-4 {
+    flex: 1;
+    overflow: auto; /* 내용 많아지면 스크롤 생김 */
+  }
  #content-area{
    width: 1500px;
  }
+ table{ table-layout: fixed; }
  .card-box { background:#fff; border-radius:12px; padding:20px; border:1px solid #dee2e6;}
  .table thead { background:#e9ecef; font-weight:600;}
 </style>
@@ -23,7 +36,7 @@
 <header th:replace="fragments/toolBar :: toolBar"></header>
 <div class="p-4">
   <div class="card-box mb-4 container d-flex flex-column" id="content-area">
-<h3 class="fw-bold mb-4">발주 내역</h3>
+  <h3 class="fw-bold mb-4">발주 내역</h3>
 
  <div class="row g-3 mb-3">
    <div class="col-auto">
@@ -38,10 +51,11 @@
      </select>
    </div>
    <div class="col-auto">
-     <input type="text" class="form-control" placeholder="직영점 검색" data-bs-toggle="modal" data-bs-target="#storeSearchModal">
+     <input type="button" class="form-control" value="직영점 선택" id="store_search_input" style="min-width:180px;">
    </div>
    <div class="col-auto">
      <button class="btn btn-dark" id="view-btn">조회</button>
+     <button class="btn btn-outline-secondary" id="reset-btn">초기화</button>
    </div>
    <div>
      <button class="btn btn-outline-secondary" id="approve-all-btn">일괄 승인</button>
@@ -59,60 +73,22 @@
    <tbody>
    </tbody>
  </table>
+    <!-- ▼ 페이지네이션 추가 -->
+    <nav>
+      <ul class="pagination justify-content-center" id="pagination">
+        <li class="page-item disabled">
+          <a class="page-link" data-page="prev">이전</a>
+        </li>
+        <li class="page-item active">
+          <a class="page-link" data-page="1">1</a>
+        </li>
+        <li class="page-item">
+          <a class="page-link" data-page="next">다음</a>
+        </li>
+      </ul>
+    </nav>
+    <!-- ▲ 페이지네이션 끝 -->
 </div>
-  <!-- ▼ 페이지네이션 추가 -->
-  <nav>
-    <ul class="pagination justify-content-center" id="pagination">
-      <li class="page-item disabled">
-        <a class="page-link" data-page="prev">이전</a>
-      </li>
-      <li class="page-item active">
-        <a class="page-link" data-page="1">1</a>
-      </li>
-      <li class="page-item">
-        <a class="page-link" data-page="next">다음</a>
-      </li>
-    </ul>
-  </nav>
-  <!-- ▲ 페이지네이션 끝 -->
-</div>
-
-<!-- 직영점 검색 모달 -->
-<div class="modal fade" id="storeSearchModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
-    <div class="modal-content">
-
-      <div class="modal-header" style="background:#495057;color:white;">
-        <h5 class="modal-title fw-bold">직영점 검색</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body">
-        <input type="text" class="form-control mb-3" placeholder="직영점명 입력">
-
-        <table class="table table-bordered align-middle text-center">
-          <thead style="background:#e9ecef;">
-            <tr><th>직영점명</th><th>주소</th><th>선택</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>금천구청점</td><td>서울 금천구 가산동</td>
-              <td><button class="btn btn-dark btn-sm" data-bs-dismiss="modal">선택</button></td>
-            </tr>
-            <tr>
-              <td>강남역점</td><td>서울 강남구 역삼동</td>
-              <td><button class="btn btn-dark btn-sm" data-bs-dismiss="modal">선택</button></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
-      </div>
-
-    </div>
-  </div>
 </div>
 
 <!-- 발주 상세 보기 모달 -->
@@ -162,12 +138,15 @@
     </div>
   </div>
 </div>
+<div th:replace="fragments/modalStoreSearch :: modalStoreSearch"></div>
+
 <script>
   const itemOrderTable = $("#item_order_list");
 
   function loadPage(pageNo) {
+    const storeNo = $("#store_search_input").data("storeno") == null ? "0" : $("#store_search_input").data("storeno");
     const params = new URLSearchParams({
-      storeNo: 0,
+      storeNo: storeNo,
       orderStatus: $("#order-status").val(),
       startDate: $("#start-date").val(),
       endDate: $("#end-date").val(),
@@ -360,6 +339,23 @@
           console.error(err);
           alert("일부 승인 중 오류가 발생했습니다.");
         });
+  });
+
+  const storeInput = $("#store_search_input");
+  $(document).on("click", "#store_search_input", function(){
+    StoreSearchModal.open("", function(storeNo, storeName) {
+      storeInput.val(storeName);
+      storeInput.data("storeno", storeNo);
+    });
+  });
+
+  $("#reset-btn").on("click", function(){
+    storeInput.val("직영점 선택");
+    storeInput.data("storeno", "0");
+    $("#start-date").val("");
+    $("#end-date").val("");
+    $("#order-status").val("전체");
+    $("#view-btn").click();
   });
 </script>
 </body>
