@@ -1,15 +1,22 @@
 package com.erp.auth;
 
 import com.erp.auth.LoginSuccessHandler;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+
+import java.io.IOException;
 
 
 @Configuration
@@ -31,12 +38,12 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable());
 
         http.authorizeHttpRequests(auth ->
-                auth.requestMatchers("/admin/**").hasRole("ADMIN")
+                auth
+                .requestMatchers("/loginView").permitAll()
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .requestMatchers("/manager/**").hasAnyRole("ADMIN", "MANAGER")
                 .requestMatchers("/store/**").hasRole("STORE")
-                .requestMatchers("/itemOrder/itemOrderListManager").hasRole("ROLE_MANAGER")
-                .requestMatchers("/itemOrder/itemOrderList").hasRole("ROLE_STORE")
-                .anyRequest().permitAll());
+                .anyRequest().authenticated());
 
 
         http
@@ -49,6 +56,15 @@ public class SecurityConfig {
                         .failureUrl("/loginView")
                 );
 
+        http.exceptionHandling(ex -> {
+           ex.accessDeniedHandler(new AccessDeniedHandler() {
+               @Override
+               public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
+                   response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                   request.getRequestDispatcher("/noPermission").forward(request, response);
+               }
+           });
+        });
 //        http.logout(logout -> logout
 //                .logoutUrl("/logout")
 //                .logoutSuccessUrl("/loginView")
