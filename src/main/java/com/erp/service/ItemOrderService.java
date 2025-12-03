@@ -157,8 +157,7 @@ public class ItemOrderService {
     }
 
     // 발주 요청 생성(관리자)
-    private ItemOrder makeOrder(ItemOrderRequestDTO request){
-        Long storeNo = request.getStoreNo();
+    private ItemOrder makeOrder(ItemOrderRequestDTO request, Long storeNo){
         Integer totalItem = request.getTotalItem();
         Integer totalAmount = request.getTotalAmount();
 
@@ -172,9 +171,9 @@ public class ItemOrderService {
         return repoOrder.save(newOrder);
     }
 
-    public void requestItemOrder(ItemOrderRequestDTO request) {
+    public void requestItemOrder(ItemOrderRequestDTO request, Long storeNo) {
 
-        ItemOrder itemOrder = makeOrder(request);
+        ItemOrder itemOrder = makeOrder(request, storeNo);
 
         request.getOrderList().forEach((item)->{
             ItemOrderDetail orderDetail = ItemOrderDetail

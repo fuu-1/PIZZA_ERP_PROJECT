@@ -23,9 +23,9 @@ public class ItemOrderController {
     public String itemOrder() {
         return "/itemOrder/itemOrder";
     }
-    @GetMapping("/itemOrder/itemProposal")
+    @GetMapping("/itemOrder/itemPropose")
     public String itemProposal() {
-        return "/itemOrder/itemProposal";
+        return "itemOrder/itemProposal";
     }
     @GetMapping("/itemOrder/itemOrderListManager")
     public String itemOrderHistoryManager() {

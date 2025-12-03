@@ -36,11 +36,12 @@ public class ItemOrderRestController {
     }
     @GetMapping("/itemOrder/itemOrderListFilter")
     public Map<String, Object> itemOrderListFilter(@RequestParam int pageNo,
-                                                 @RequestParam Long storeNo,
                                                  @RequestParam String startDate,
                                                  @RequestParam String endDate,
-                                                 @RequestParam String orderStatus) {
-        Page<ItemOrderDTO> page = itemOrderService.getItemOrderList(pageNo, storeNo, orderStatus, startDate, endDate);
+                                                 @RequestParam String orderStatus,
+                                                   @AuthenticationPrincipal PrincipalDetails dp) {
+        System.out.println("!!!!!!!!!storeNo: "+dp.getStore().getStoreNo());
+        Page<ItemOrderDTO> page = itemOrderService.getItemOrderList(pageNo, dp.getStore().getStoreNo(), orderStatus, startDate, endDate);
         return Map.of(
                 "list", page.getContent(),
                 "totalPages", page.getTotalPages(),
@@ -78,14 +79,25 @@ public class ItemOrderRestController {
         return ResponseEntity.ok().body(Map.of("message", "Receive ItemOrderDetail Success"));
     }
 
+    @GetMapping("/itemOrder/itemProposalHistory")
+    public List<ItemProposalDTO> proposalItemOrderHistory(@AuthenticationPrincipal PrincipalDetails dp) {
+        return itemOrderService.getItemProposalHistoryByStoreNo(dp.getStore().getStoreNo());
+    }
+
     @GetMapping("/itemOrder/itemProposalHistory/{storeNo}")
-    public List<ItemProposalDTO> proposalItemOrderHistory(@AuthenticationPrincipal PrincipalDetails) {
+    public List<ItemProposalDTO> proposalItemOrderHistory(@PathVariable Long storeNo) {
         return itemOrderService.getItemProposalHistoryByStoreNo(storeNo);
+    }
+
+    @GetMapping("/itemOrder/itemProposal")
+    public List<ItemProposalDTO> proposalItemOrder(@AuthenticationPrincipal PrincipalDetails dp) {
+        return itemOrderService.getItemProposalByStoreNo(dp.getStore().getStoreNo());
     }
     @GetMapping("/itemOrder/itemProposal/{storeNo}")
     public List<ItemProposalDTO> proposalItemOrder(@PathVariable Long storeNo) {
         return itemOrderService.getItemProposalByStoreNo(storeNo);
     }
+
     @PutMapping("/itemOrder/respondItemProposal/{proposalNo}")
     public ResponseEntity<Map<String, String>> responseProposal(@PathVariable Long proposalNo) {
         try {
@@ -98,16 +110,19 @@ public class ItemOrderRestController {
         return ResponseEntity.ok().body(Map.of("message", "Response Proposal Success"));
     }
 
+    @GetMapping("/itemOrder/itemList")
+    public List<ItemStoreQuantityDTO> itemList(@AuthenticationPrincipal PrincipalDetails dp) {
+        return itemOrderService.itemList(dp.getStore().getStoreNo());
+    }
     @GetMapping("/itemOrder/itemList/{storeNo}")
     public List<ItemStoreQuantityDTO> itemList(@PathVariable Long storeNo) {
         return itemOrderService.itemList(storeNo);
     }
 
     @PostMapping("/itemOrder/itemOrder")
-    public ResponseEntity<Map<String, String>> requestItemOrder(@RequestBody ItemOrderRequestDTO request) {
+    public ResponseEntity<Map<String, String>> requestItemOrder(@RequestBody ItemOrderRequestDTO request, @AuthenticationPrincipal PrincipalDetails dp) {
         try {
-            System.out.println(request);
-            itemOrderService.requestItemOrder(request);
+            itemOrderService.requestItemOrder(request, dp.getStore().getStoreNo());
         }
         catch (Exception e) {
             System.err.println(e.getMessage());
