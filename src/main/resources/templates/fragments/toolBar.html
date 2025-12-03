@@ -106,6 +106,16 @@
                 <span>품목/재고 ▾</span>
                 <div class="dropdown-menu">
                     <a href="#" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">품목 등록</a>
+                    <a href="/item/get">품목 조회</a>
+
+                    <a href="/manager/stock/storeItem"
+                       sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">재고 현황 조회</a>
+             
+                    <a href="/manager/stock/storeStock"
+                       sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">재고 변동 조회</a>
+               
+                    <a href="#" sec:authorize="hasAnyRole('ROLE_MANAGER', 'ROLE_ADMIN')">발주 승인 대기</a>
+                    <a href="#">발주 내역 조회</a>
                     <a href="#">품목 조회</a>
                     <a href="#">재고 현황 조회</a>
                     <a href="#">재고 변동 조회</a>
@@ -115,6 +125,7 @@
                     <a href="/itemOrder/itemPropose" sec:authorize="hasAnyRole('ROLE_MANAGER')">발주 제안</a>
                 </div>
             </div>
+
 
             <div class="menu-item dropdown">
                 <span>메뉴 ▾</span>
@@ -136,7 +147,7 @@
             <span class="store-name" sec:authorize="hasRole('ROLE_STORE')"
                               sec:authentication="principal.store.storeName"></span>
             <span class="name" sec:authentication="principal.manager.managerName"></span>
-            <button class="logout-btn" id="logoutBtn">로그아웃</button>
+            <a href="/logout" class="logout-btn" id="logoutBtn">로그아웃</a>
         </div>
     </div>
 </div>
