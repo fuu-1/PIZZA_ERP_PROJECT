@@ -2,12 +2,10 @@ package com.erp.service;
 
 import com.erp.controller.exception.NoMenuException;
 import com.erp.dao.MenuDAO;
+import com.erp.dto.ItemDTO;
 import com.erp.dto.MenuDTO;
 import com.erp.dto.MenuIngredientDTO;
 import com.erp.repository.MenuIngredientRepository;
-import com.erp.repository.MenuRepository;
-import com.erp.repository.entity.Menu;
-import com.erp.repository.entity.MenuIngredient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +19,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class MenuService {
     private final MenuDAO menuDAO;
-    private final MenuRepository menuRepository;
     private final MenuIngredientRepository menuIngredientRepository;
 
     //전체 메뉴 조회
@@ -102,4 +99,29 @@ public class MenuService {
         return new ArrayList<>(merged.values());
     }
 
+//    public MenuDTO addMenu(MenuDTO menuRequest) {
+//        MenuDTO menu = MenuDTO.builder()
+//                        .menuName(menuRequest.getMenuName())
+//                        .menuCode(menuRequest.getMenuCode())
+//                        .menuCategory(menuRequest.getMenuCategory())
+//                        .menuPrice(menuRequest.getMenuPrice())
+//                        .menuExplain(menuRequest.getMenuExplain())
+//                        .size(menuRequest.getSize())
+//                        .menuImage(menuRequest.getMenuImage())
+//                        .releaseStatus(menuRequest.getReleaseStatus())
+//                        .build();
+//        menuDAO.addMenu(menu);
+//
+//        Long menuNo = menu.getMenuNo();
+//        Long itemNo = itemRequest.getItemNo();
+//    }
+//
+//    private void savaSize(MenuDTO menuRequest) {
+//        for (MenuDTO dto : menuRequest.getSizeList()) {
+//            menuDAO.addMenu(dto);
+//            Long menuNo = dto.getMenuNo();
+//
+//
+//        }
+//    }
 }

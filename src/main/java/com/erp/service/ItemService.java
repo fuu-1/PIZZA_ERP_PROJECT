@@ -17,7 +17,8 @@ public class ItemService {
 
     public ItemDTO getDetail(Long itemNo) { return itemDAO.getItemDetail(itemNo); }
 
-    public List<ItemDTO> getItemList() { return itemDAO.getItemList(); }
+    public List<ItemDTO> getItemList(String itemName, String itemCategory, String ingredientName, String itemCode) {
+        return itemDAO.getItemList(itemName, itemCategory, ingredientName, itemCode); }
 
     public List<ItemDTO> getItemsByCategory(String category){ return itemDAO.getByCategory(category); }
     public List<ItemDTO> getItemsByItemName(String name){ return itemDAO.getByItemName(name); }
