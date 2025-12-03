@@ -2,7 +2,7 @@ package com.erp.service;
 
 import com.erp.controller.exception.StoreItemLimitConflictException;
 import com.erp.controller.exception.StoreItemNotFoundException;
-import com.erp.controller.request.StoreItemSearchRequestDTO;
+import com.erp.controller.request.SearchRequestDTO;
 import com.erp.dto.PageResponseDTO;
 import com.erp.dto.StoreItemDTO;
 import com.erp.repository.StoreItemRepository;
@@ -23,7 +23,7 @@ public class StoreItemService {
      * 재고 조회 (본사/직영점 공용)
      */
     @Transactional(readOnly = true)
-    public PageResponseDTO<StoreItemDTO> getStoreItems(StoreItemSearchRequestDTO request) {
+    public PageResponseDTO<StoreItemDTO> getStoreItems(SearchRequestDTO request) {
 
 
         // 1) 카테고리: "전체" 또는 빈값이면 null 처리 → 조건 무시
