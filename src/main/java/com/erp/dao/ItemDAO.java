@@ -2,6 +2,7 @@ package com.erp.dao;
 
 import com.erp.dto.ItemDTO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -18,7 +19,8 @@ public interface ItemDAO {
     int removeItem(Long itemNo);
 
     // 4) 전체 목록 조회
-    List<ItemDTO> getItemList();
+    List<ItemDTO> getItemList(@Param("itemName") String itemName, @Param("itemCategory") String itemCategory,
+                              @Param("ingredientName") String ingredientName, @Param("itemCode") String itemCode);
 
     // 5) 카테고리 검색
     List<ItemDTO> getByCategory(String itemCategory);
