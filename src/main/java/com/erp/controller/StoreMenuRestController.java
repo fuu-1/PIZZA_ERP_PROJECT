@@ -1,20 +1,34 @@
 package com.erp.controller;
 
 import com.erp.auth.PrincipalDetails;
+import com.erp.dto.MenuStatusDTO;
 import com.erp.dto.StoreMenuDTO;
 import com.erp.dto.StoreMenuGroupedDTO;
 import com.erp.service.StoreMenuService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/storeMenu")
 public class StoreMenuRestController {
     private final StoreMenuService storeMenuService;
+
+    @PostMapping("/updateStatus")
+    public ResponseEntity<Map<String, String>> updateStatus(
+            @RequestBody List<MenuStatusDTO> updates) {
+
+        storeMenuService.updateStatus(updates);
+
+        return ResponseEntity.ok(Map.of("message", "success"));
+    }
+
+
 
     @GetMapping("/getMenu")
     public List<StoreMenuGroupedDTO> getStoreMenuList(

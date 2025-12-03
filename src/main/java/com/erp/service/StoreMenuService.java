@@ -1,10 +1,12 @@
 package com.erp.service;
 
+import com.erp.dto.MenuStatusDTO;
 import com.erp.dto.StoreMenuDTO;
 import com.erp.dto.StoreMenuGroupedDTO;
 import com.erp.repository.StoreMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -16,6 +18,17 @@ import java.util.Map;
 public class StoreMenuService {
 
     private final StoreMenuRepository storeMenuRepository;
+
+
+    public void updateStatus(List<MenuStatusDTO> updates) {
+        for (MenuStatusDTO dto : updates) {
+            storeMenuRepository.setSalesStatus(
+                    dto.getStoreMenuNo(),
+                    dto.getSalesStatus()
+            );
+        }
+    }
+
 
     public List<StoreMenuGroupedDTO> getStoreMenuList(Long storeNo,
                                                       String menuName,
