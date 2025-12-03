@@ -7,6 +7,7 @@
     const IS_MANAGER = ROLE === 'MANAGER';
     const PAGE_SIZE = parseInt($body.data('pageSize') || '10', 10);
     const VISIBLE_PAGES = 5; // 번호 5개 고정
+    const STATE_KEY = 'storeItemState:' + location.pathname;
 
     // 직영점 화면은 body에 data-store-no 필수
     const STORE_NO = !IS_MANAGER ? parseInt($body.data('storeNo') || '0', 10) : null;
@@ -37,8 +38,21 @@
         return null;
     }
 
-    const STATE_KEY = 'storeItemState:' + location.pathname;
+    /*** 숫자/파서 유틸 ***/
+    function numOrNull(v) {
+        if (v === '' || v === undefined || v === null) return null;
+        const n = Number(v);
+        return Number.isFinite(n) ? n : null;
+    }
+    function isPositiveInt(s) {
+        const str = String(s ?? '').trim();
+        if (str === '') return false;
+        if (!/^\d+$/.test(str)) return false;   // 숫자 외 문자(+,-,e,E,.) 차단
+        const n = Number(str);
+        return Number.isFinite(n) && n > 0 && n <= 2147483647;
+    }
 
+    /*** 상태 보존 (뒤로가기 복원) ***/
     function collectState() {
         return {
             role: ROLE,
@@ -120,18 +134,11 @@
     }
     window.toast = toast;
 
-    /*** CSRF 메타 → 헤더 ***/
+    /*** CSRF 메타 → 헤더 (있을 때만) ***/
     function getCsrf() {
         const t = document.querySelector('meta[name="_csrf"]');
         const h = document.querySelector('meta[name="_csrf_header"]');
         return (t && h) ? { token: t.content, header: h.content } : null;
-    }
-
-    /*** 숫자 파서 ***/
-    function numOrNull(v) {
-        if (v === '' || v === undefined || v === null) return null;
-        const n = Number(v);
-        return Number.isFinite(n) ? n : null;
     }
 
     /*** 하한선 모달: 환산/단위 헬퍼 ***/
@@ -145,42 +152,48 @@
         return { stockUnit, supplyUnit };
     }
 
-    /*** 하한선 입력 검증 ***/
+    /*** 하한선 입력 검증(정수만) ***/
     function validateLimitInput() {
-        const val = $('#limitNew').val();
+        const val = String($('#limitNew').val() ?? '').trim();
         const $err = $('#limitErrorText');
         const $btn = $('#btnSaveLimit');
         if (val === '') { $err.addClass('d-none'); $btn.prop('disabled', false); return; }
-        const num = Number(val);
-        if (!Number.isFinite(num) || num <= 0) { $err.removeClass('d-none'); $btn.prop('disabled', true); }
+        if (!isPositiveInt(val)) { $err.removeClass('d-none'); $btn.prop('disabled', true); }
         else { $err.addClass('d-none'); $btn.prop('disabled', false); }
     }
     $(document).on('input', '#limitNew', validateLimitInput);
 
-    // 공급단위 계산
+    // 숫자 이외 키 차단(하한선/폐기 공통)
+    $(document).on('keydown', '#limitNew, #disposeQtyInput, #disposeSupplyCount', function (e) {
+        if (['e','E','+','-','.'].includes(e.key)) e.preventDefault();
+    });
+
+    // 공급단위 계산 → 정수 변환
     $(document).on('change', '#limitUseSupply', function () {
         const on = this.checked;
         $('#limitSupplyCount').prop('disabled', !on);
         $('#limitErrorText').addClass('d-none');
-        if (!on) $('#limitSupplyCount').val(''); else $('#limitSupplyCount').trigger('input');
+        if (!on) $('#limitSupplyCount').val('');
+        else $('#limitSupplyCount').trigger('input');
     });
     $(document).on('input', '#limitSupplyCount', function () {
-        const boxes = parseFloat(this.value) || 0;
-        theConstFix();
+        const boxes = parseInt(this.value || '0', 10) || 0;
         const conv = Number($('#limitModal').data('convertStock') || 0);
-        if (conv > 0 && boxes >= 0) $('#limitNew').val(boxes * conv).trigger('input');
+        if (conv > 0 && boxes >= 0) {
+            $('#limitNew').val(String(boxes * conv)).trigger('input');
+        }
     });
 
-    // === 소유자 라벨/입력 토글 유틸 추가 ===
+    // === 소유자 라벨/입력 토글 유틸 ===
     function setOwnerLabel(owner) {
         const $o = $('#limitOwnerText');
         $o.removeClass('text-muted text-secondary text-danger text-success');
         if (owner === 'MANAGER') {
-            $o.text('본사에서 설정한 하한선입니다.').addClass('text-danger'); // 빨강
+            $o.text('본사에서 설정한 하한선입니다.').addClass('text-danger');
         } else if (owner === 'STORE') {
-            $o.text('직영점에서 설정한 하한선입니다.').addClass('text-success'); // 초록
+            $o.text('직영점에서 설정한 하한선입니다.').addClass('text-success');
         } else {
-            $o.text('현재 설정된 하한선이 없습니다.').addClass('text-secondary'); // 회색
+            $o.text('현재 설정된 하한선이 없습니다.').addClass('text-secondary');
         }
     }
     function setLimitInputsEnabled(enabled) {
@@ -219,10 +232,7 @@
             $('#limitCurrentText').text(Number(rawLimit).toLocaleString() + ' ' + stockUnit);
         }
 
-        // 소유자 문구 + 색상
         setOwnerLabel(owner);
-
-        // 입력 가능 여부: 직영점 화면에서 본사 설정이면 금지
         if (!IS_MANAGER && owner === 'MANAGER') setLimitInputsEnabled(false);
         else setLimitInputsEnabled(true);
 
@@ -234,15 +244,13 @@
         $('#limitConvertInfo').text(
             conv ? `※ 1 ${supplyUnit} = ${conv} ${stockUnit}` : '※ 공급단위-재고단위 변환 정보를 불러올 수 없습니다.'
         );
-
         $('#limitErrorText').addClass('d-none');
 
-        // 모달 메타
         $('#limitModal').data('storeItemNo', storeItemNo);
         $('#limitModal').data('convertStock', conv || 0);
         $('#limitModal').data('supplyUnit', supplyUnit);
         $('#limitModal').data('stockUnit', stockUnit);
-        $('#limitModal').data('owner', owner); // 저장 가드용
+        $('#limitModal').data('owner', owner);
 
         if (!limitModalInstance) {
             const el = document.getElementById('limitModal');
@@ -256,41 +264,38 @@
     });
     window.openLimitModal = function (el) { openLimitModalByRow($(el).closest('tr')); };
 
-    /*** 행 데이터(한도/소유자/셀) 즉시 반영 유틸 ***/
+    /*** 행 데이터 즉시 반영 ***/
     function applyLimitToRow($row, finalLimit, owner, unit) {
-        // data-* 갱신
         $row.data('limit', finalLimit != null ? finalLimit : '');
         $row.data('owner', owner || 'NONE');
-
-        // 표 셀 텍스트 갱신
         const text = (finalLimit == null) ? '-' : (Number(finalLimit).toLocaleString() + ' ' + (unit || 'ea'));
         $row.find('.cell-limit').contents().filter(function () {
             return this.nodeType === Node.TEXT_NODE;
         }).first().replaceWith(text + ' ');
-
-        // 재고<하한선 강조 재계산
         markLowRows();
     }
 
-    /*** 하한선 저장 (CSRF 헤더 주입 + 즉시 fallback 반영) ***/
+    /*** 하한선 저장 (정수 검증 + 동일 토스트 UX) ***/
     $(document).on('click', '#btnSaveLimit', function () {
         const $modal = $('#limitModal');
         const storeItemNo = $modal.data('storeItemNo');
         if (!storeItemNo) { toast('선택된 품목 정보가 없습니다.', 'warning'); return; }
 
-        // 직영점 화면 + 본사 설정이면 저장 금지 (이중 방어)
         const ownerNow = String($modal.data('owner') || 'NONE').toUpperCase();
         if (!IS_MANAGER && ownerNow === 'MANAGER') {
             toast('본사 설정 중에는 직영점에서 수정할 수 없습니다.', 'warning');
             return;
         }
 
-        const val = $('#limitNew').val().trim();
+        const raw = String($('#limitNew').val() || '').trim();
         let newLimit = null;
-        if (val !== '') {
-            const num = Number(val);
-            if (!Number.isFinite(num) || num <= 0) { $('#limitErrorText').removeClass('d-none'); return; }
-            newLimit = num;
+        if (raw !== '') {
+            if (!isPositiveInt(raw)) {
+                $('#limitErrorText').removeClass('d-none');
+                toast('하한선은 1 이상의 정수로 입력하세요.', 'warning');
+                return; // 서버 호출 차단 → null 저장 방지
+            }
+            newLimit = parseInt(raw, 10);
         }
 
         const params = new URLSearchParams();
@@ -316,24 +321,20 @@
                 });
                 if ($row.length) {
                     const unit = ($row.data('unit') || 'ea');
-
-                    // 현재 행의 두 한도값 읽기
                     let man = numOrNull($row.data('managerlimit'));
                     let sto = numOrNull($row.data('storelimit'));
 
                     if (IS_MANAGER) {
-                        // 본사에서 저장 → managerLimit 갱신
                         man = (newLimit == null) ? null : Number(newLimit);
                         $row.data('managerlimit', man != null ? man : '');
                         const final = (man != null) ? man : (sto != null ? sto : null);
                         const owner = (man != null) ? 'MANAGER' : (sto != null ? 'STORE' : 'NONE');
                         applyLimitToRow($row, final, owner, unit);
                     } else {
-                        // 직영점에서 저장 → storeLimit 갱신
                         sto = (newLimit == null) ? null : Number(newLimit);
                         $row.data('storelimit', sto != null ? sto : '');
-                        const final = (man != null) ? man : (sto != null ? sto : null); // 본사 우선
-                        const owner = (man != null) ? 'MANAGER' : (sto != null ? 'STORE' : 'NONE');
+                        const final = (man != null) ? man : (sto != null ? sto : null);
+                        const owner = (man != null) ? 'MANAGER' : (sto != null) ? 'STORE' : 'NONE';
                         applyLimitToRow($row, final, owner, unit);
                     }
                 }
@@ -362,6 +363,7 @@
         $('#disposeQtyInput').val('');
         $('#checkSupplyDispose').prop('checked', false);
         $('#disposeSupplyCount').val('').prop('disabled', true);
+        $('#disposeReason').val('');
 
         const conv = getConvFromRow($row);
         const { supplyUnit, stockUnit } = getUnitsFromRow($row);
@@ -374,6 +376,7 @@
         modal.data('convertStock', conv || 0);
         modal.data('supplyUnit', supplyUnit);
         modal.data('stockUnit', stockUnit);
+        modal.data('storeItemNo', $row.data('storeitemno'));
 
         if (!disposeModalInstance) {
             const el = document.getElementById('disposeModal');
@@ -401,6 +404,79 @@
         if (conv > 0 && sc >= 0) $('#disposeQtyInput').val(sc * conv);
     });
 
+    // 폐기 등록
+    $(document).on('click', '#btnDisposeSubmit', function () {
+        if (IS_MANAGER) return;
+
+        const $modal = $('#disposeModal');
+        const storeItemNo = $modal.data('storeItemNo');
+        if (!storeItemNo) { toast('품목 정보가 없습니다.', 'warning'); return; }
+
+        const raw = String($('#disposeQtyInput').val() || '').trim();
+        const qty = parseInt(raw, 10);
+        const reason = ($('#disposeReason').val() || '').trim();
+
+        if (!Number.isFinite(qty) || qty <= 0) {
+            toast('폐기 수량은 1 이상의 정수로 입력하세요.', 'warning');
+            return;
+        }
+
+        const $row = $('#stockTableBody tr').filter(function () {
+            return String($(this).data('storeitemno')) === String(storeItemNo);
+        });
+        const current = Number($row.data('currentqty') || 0);
+        if (qty > current) { toast('현재 재고를 초과했습니다.', 'warning'); return; }
+
+        const params = new URLSearchParams();
+        params.append('quantity', qty);
+        if (reason) params.append('reason', reason);
+
+        const csrf = getCsrf();
+        const headers = { 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8' };
+        if (csrf) headers[csrf.header] = csrf.token;
+
+        fetch(`/stock/storeItem/${storeItemNo}/dispose`, {
+            method: 'POST',
+            headers,
+            body: params.toString(),
+            credentials: 'same-origin'
+        })
+            .then(async res => {
+                if (!res.ok) {
+                    let msg = '폐기 등록에 실패했습니다.';
+                    try { const t = await res.text(); if (t) msg = t; } catch {}
+                    throw new Error(msg);
+                }
+                return res.json();
+            })
+            .then(data => {
+                const newCur = Number(data.currentQuantity || 0);
+                if ($row.length) {
+                    $row.data('currentqty', newCur);
+                    const unit = ($row.data('unit') || 'ea');
+                    const text = newCur.toLocaleString() + ' ' + unit;
+                    $row.find('.cell-current').contents().filter(function () {
+                        return this.nodeType === Node.TEXT_NODE;
+                    }).first().replaceWith(text + ' ');
+                }
+                markLowRows();
+                toast('폐기 등록이 완료되었습니다.', 'success');
+                if (disposeModalInstance) disposeModalInstance.hide();
+            })
+            .catch(err => {
+                console.error(err);
+                toast(err.message || '폐기 등록에 실패했습니다.', 'danger');
+            });
+    });
+
+    /*** 폐기 모달: 닫힐 때 입력값 초기화 ***/
+    $(document).on('hidden.bs.modal', '#disposeModal', function () {
+        $('#disposeQtyInput').val('');
+        $('#disposeSupplyCount').val('').prop('disabled', true);
+        $('#disposeReason').val('');
+        $('#checkSupplyDispose').prop('checked', false);
+    });
+
     /*** 본문 테이블 렌더 (두 한도 data-* 포함) ***/
     function buildRowHtml(item) {
         const limitVal = item.limitQuantity ?? item.finalLimit ?? null;
@@ -409,7 +485,6 @@
             : '-';
         const currentText = (item.currentQuantity || 0).toLocaleString() + ' ' + (item.stockUnit || 'ea');
 
-        // 새 필드(선택): managerLimit, storeLimit
         const managerLimit = (item.managerLimit ?? null);
         const storeLimit   = (item.storeLimit ?? null);
         const ownerAttr    = (item.limitOwnerType || item.limitOwner || 'NONE');
@@ -418,6 +493,7 @@
             return `
 <tr
   data-storeitemno="${item.storeItemNo}"
+  data-itemno="${item.itemNo || ''}"
   data-storename="${item.storeName || ''}"
   data-itemname="${item.itemName || ''}"
   data-category="${item.itemCategory || ''}"
@@ -451,6 +527,7 @@
             return `
 <tr
   data-storeitemno="${item.storeItemNo}"
+  data-itemno="${item.itemNo || ''}"
   data-itemname="${item.itemName || ''}"
   data-category="${item.itemCategory || ''}"
   data-currentqty="${item.currentQuantity || 0}"
@@ -497,13 +574,13 @@
         markLowRows();
     }
 
-    /*** 메인 페이저: 번호 5개 블록 & << < > >> ***/
+    /*** 메인 페이저 ***/
     function renderPager(pageData) {
         const $pager = $('#mainPager').empty();
         if (!pageData || pageData.totalPages === 0) return;
 
         const total = pageData.totalPages;
-        const current = (pageData.page || 0) + 1; // 0-base → 1-base
+        const current = (pageData.page || 0) + 1;
 
         const block = Math.floor((current - 1) / VISIBLE_PAGES);
         const start = block * VISIBLE_PAGES + 1;
@@ -592,7 +669,6 @@
                     selectedStoreName = storeName;
                     $('#storeSearchKeyword').val(storeName);
                     updateOverlay();
-
                     const st = collectState(); st.page = 1;
                     pushUrl(st);
                     sessionStorage.setItem(STATE_KEY, JSON.stringify(st));
@@ -623,9 +699,12 @@
         }
     }
 
-    /*** 상세보기 (공통 더미) ***/
+    /*** 상세보기: 해당 itemNo로 이동 ***/
     $(document).on('click', '.btn-detail', function () {
-        window.location.href = '/item/detail';
+        const $row = $(this).closest('tr');
+        const itemNo = $row.data('itemno');
+        if (itemNo) window.location.href = '/item/detail?itemNo=' + itemNo;
+        else window.location.href = '/item/detail';
     });
 
     // 뒤로가기/복원
@@ -642,9 +721,7 @@
         loadPage((st && st.page) || 1);
     });
 
+    // 오버레이 동기
     $('#storeSearchKeyword').on('input change', updateOverlay);
-
-    // 내부 미세수정: 오타 방지용 no-op (문맥 유지)
-    function theConstFix(){}
 
 })(jQuery);

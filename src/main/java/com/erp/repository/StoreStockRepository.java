@@ -1,73 +1,73 @@
+// com.erp.repository.StoreStockRepository
 package com.erp.repository;
 
+import com.erp.dto.StoreStockDTO;
 import com.erp.repository.entity.StoreStock;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.sql.Timestamp;
 
-import java.util.List;
 @Repository
 public interface StoreStockRepository extends JpaRepository<StoreStock, Long> {
 
-    // 1) 직영점 전체 변동 기록 조회
-    @Query("""
-        SELECT ss
-        FROM StoreStock ss
-        JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
-        WHERE si.storeNo = :storeNo
-        ORDER BY ss.storeStockNo DESC
-    """)
-    List<StoreStock> findAllByStoreNo(@Param("storeNo") Long storeNo);
+    // 목록 검색(페이지네이션 + 모든 조건)
+    @Query(
+            value = """
+SELECT new com.erp.dto.StoreStockDTO(
+  ss.changeDatetime,
+  i.itemCategory,
+  i.itemCode,
+  i.itemName,
+  ss.changeReason,
+  ss.changeQuantity,
+  ss.currentQuantity,
+  ss.disposalReason,
+  i.stockUnit
+)
+FROM StoreStock ss
+JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
+JOIN Item      i  ON si.itemNo      = i.itemNo
+WHERE si.storeNo = :storeNo
+  AND (:category IS NULL OR i.itemCategory = :category)
+  AND (:reason   IS NULL OR ss.changeReason = :reason)
+  AND (:start    IS NULL OR ss.changeDatetime >= :start)
+  AND (:end      IS NULL OR ss.changeDatetime <  :end)
+  AND (
+        :keyword IS NULL OR
+        (:searchType = 'NAME' AND i.itemName LIKE CONCAT('%', :keyword, '%')) OR
+        (:searchType = 'CODE' AND i.itemCode LIKE CONCAT('%', :keyword, '%'))
+      )
+ORDER BY ss.storeStockNo DESC
+""",
+            countQuery = """
+SELECT COUNT(ss)
+FROM StoreStock ss
+JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
+JOIN Item      i  ON si.itemNo      = i.itemNo
+WHERE si.storeNo = :storeNo
+  AND (:category IS NULL OR i.itemCategory = :category)
+  AND (:reason   IS NULL OR ss.changeReason = :reason)
+  AND (:start    IS NULL OR ss.changeDatetime >= :start)
+  AND (:end      IS NULL OR ss.changeDatetime <  :end)
+  AND (
+        :keyword IS NULL OR
+        (:searchType = 'NAME' AND i.itemName LIKE CONCAT('%', :keyword, '%')) OR
+        (:searchType = 'CODE' AND i.itemCode LIKE CONCAT('%', :keyword, '%'))
+      )
+"""
+    )
+    Page<StoreStockDTO> searchStoreStock(@Param("storeNo") Long storeNo,
+                                         @Param("category") String category,
+                                         @Param("reason") String reason,
+                                         @Param("searchType") String searchType, // 'NAME' | 'CODE' | null
+                                         @Param("keyword") String keyword,
+                                         @Param("start") Timestamp start,        // null 허용
+                                         @Param("end") Timestamp end,            // null 허용(다음날 00:00)
+                                         Pageable pageable);
 
-    // 2) 직영점 + 품목명 검색
-    @Query("""
-        SELECT ss
-        FROM StoreStock ss
-        JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
-        JOIN Item itm ON si.itemNo = itm.itemNo
-        WHERE si.storeNo = :storeNo
-          AND itm.itemName LIKE %:itemName%
-        ORDER BY ss.storeStockNo DESC
-    """)
-    List<StoreStock> findByItemName(@Param("storeNo") Long storeNo,
-                                    @Param("itemName") String itemName);
-
-    // 3) 직영점 + 품목코드 검색
-    @Query("""
-        SELECT ss
-        FROM StoreStock ss
-        JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
-        JOIN Item itm ON si.itemNo = itm.itemNo
-        WHERE si.storeNo = :storeNo
-          AND itm.itemCode LIKE %:itemCode%
-        ORDER BY ss.storeStockNo DESC
-    """)
-    List<StoreStock> findByItemCode(@Param("storeNo") Long storeNo,
-                                    @Param("itemCode") String itemCode);
-
-
-    //4)  직영점 + 기간으로 재고 변동 조회
-        @Query("""
-            SELECT ss
-            FROM StoreStock ss
-            JOIN StoreItem si ON ss.storeItemNo = si.storeItemNo
-            WHERE si.storeNo = :storeNo
-              AND ss.changeDatetime BETWEEN :start AND :end
-            ORDER BY ss.storeStockNo DESC
-        """)
-        List<StoreStock> findByStoreNoAndChangeDatetimeBetween(
-                @Param("storeNo") Long storeNo,
-                @Param("start") java.sql.Timestamp start,
-                @Param("end") java.sql.Timestamp end
-        );
-
-    // 현재 재고 수량 조회
     StoreStock findFirstByStoreItemNoOrderByStoreStockNoDesc(Long storeItemNo);
-
-    StoreStock findByStoreItemNo(Long storeItemNo);
 }
-
-
-

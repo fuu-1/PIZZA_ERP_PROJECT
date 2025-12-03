@@ -2,7 +2,7 @@ package com.erp.service;
 
 import com.erp.controller.exception.StoreItemLimitConflictException;
 import com.erp.controller.exception.StoreItemNotFoundException;
-import com.erp.controller.request.StoreItemSearchRequestDTO;
+import com.erp.controller.request.SearchRequestDTO;
 import com.erp.dto.PageResponseDTO;
 import com.erp.dto.StoreItemDTO;
 import com.erp.repository.StoreItemRepository;
@@ -36,7 +36,7 @@ class StoreItemServiceTest {
     @Test
     void getStoreItems_basic() {
         // given
-        StoreItemSearchRequestDTO req = new StoreItemSearchRequestDTO();
+        SearchRequestDTO req = new SearchRequestDTO();
         req.setStoreNo(1L);    // 샘플 데이터 기준 (1호점)
         req.setPage(0);
         req.setSize(10);
@@ -72,7 +72,7 @@ class StoreItemServiceTest {
     @Test
     void getStoreItems_withCategoryAndItemName() {
 
-        StoreItemSearchRequestDTO req = new StoreItemSearchRequestDTO();
+        SearchRequestDTO req = new SearchRequestDTO();
         req.setStoreNo(1L);
         req.setCategory("도우");
         req.setSearchType("NAME");
@@ -105,7 +105,7 @@ class StoreItemServiceTest {
     @Test
     void getStoreItems_withCategoryAndItemCode() {
 
-        StoreItemSearchRequestDTO req = new StoreItemSearchRequestDTO();
+        SearchRequestDTO req = new SearchRequestDTO();
         req.setStoreNo(1L);
         req.setCategory("도우");
         req.setSearchType("CODE");
