@@ -6,7 +6,6 @@ import com.erp.dto.StoreMenuGroupedDTO;
 import com.erp.repository.StoreMenuRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -55,6 +54,7 @@ public class StoreMenuService {
             String code = dto.getMenuCode();
 
             grouped.putIfAbsent(code, new StoreMenuGroupedDTO(
+                    dto.getStoreName(),
                     dto.getMenuCode(),
                     dto.getMenuName(),
                     dto.getMenuCategory(),
@@ -70,4 +70,40 @@ public class StoreMenuService {
     public List<StoreMenuDTO> getStoreMenu(Long storeNo) {
         return storeMenuRepository.findStoreMenuByStoreNo(storeNo);
     }
+
+    public List<StoreMenuGroupedDTO> searchMenu(
+            String menuName,
+            String salesStatus,
+            String menuCategory
+    ){
+        if (salesStatus != null && salesStatus.trim().isEmpty()) salesStatus = null;
+        if (menuCategory != null && menuCategory.trim().isEmpty()) menuCategory = null;
+
+        List<StoreMenuDTO> rawList =
+                storeMenuRepository.findStoreMenu(
+                        null,
+                        menuName,
+                        salesStatus,
+                        menuCategory,
+                        null
+                ).getContent();
+
+        Map<String, StoreMenuGroupedDTO> grouped = new LinkedHashMap<>();
+
+        for (StoreMenuDTO dto : rawList){
+            String key = dto.getStoreName() + "-" + dto.getMenuCode();
+            grouped.putIfAbsent(key, new StoreMenuGroupedDTO(
+                    dto.getStoreName(),
+                    dto.getMenuCode(),
+                    dto.getMenuName(),
+                    dto.getMenuCategory(),
+                    new ArrayList<>()
+            ));
+
+            grouped.get(key).getItems().add(dto);
+        }
+
+        return new ArrayList<>(grouped.values());
+    }
+
 }

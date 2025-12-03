@@ -19,6 +19,15 @@ import java.util.Map;
 public class StoreMenuRestController {
     private final StoreMenuService storeMenuService;
 
+    @GetMapping("/searchMenu")
+    public List<StoreMenuGroupedDTO> searchMenu(
+            @RequestParam String menuName,
+            @RequestParam(required = false) String salesStatus,
+            @RequestParam(required = false) String menuCategory
+    ){
+        return storeMenuService.searchMenu(menuName, salesStatus, menuCategory);
+    }
+
     @PostMapping("/updateStatus")
     public ResponseEntity<Map<String, String>> updateStatus(
             @RequestBody List<MenuStatusDTO> updates) {
@@ -27,7 +36,19 @@ public class StoreMenuRestController {
 
         return ResponseEntity.ok(Map.of("message", "success"));
     }
-
+    @GetMapping("/getStoreMenu")
+    public List<StoreMenuGroupedDTO> getStoreMenuListForManager(
+            @RequestParam Long storeNo,
+            @RequestParam(required = false) String salesStatus,
+            @RequestParam(required = false, name = "menuCategory") String menuCategory
+    ){
+        return storeMenuService.getStoreMenuList(
+                storeNo,
+                null,
+                salesStatus,
+                menuCategory
+        );
+    }
 
 
     @GetMapping("/getMenu")

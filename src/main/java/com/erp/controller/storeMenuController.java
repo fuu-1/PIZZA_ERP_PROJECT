@@ -15,11 +15,13 @@ public class storeMenuController {
     private String storeMenu(
             Model model,
             @AuthenticationPrincipal PrincipalDetails principal){
-
         String storeName = principal.getStore().getStoreName();
-
         model.addAttribute("storeName", storeName);
-
         return "menu/storeMenuUI";
+    }
+
+    @GetMapping("/manager/storeMenu")
+    private String storeMenuManager(){
+        return "menu/storeMenuManagerUI";
     }
 }
