@@ -1,66 +1,60 @@
 package com.erp.controller;
 
+import com.erp.auth.PrincipalDetails;
 import com.erp.controller.request.SearchRequestDTO;
 import com.erp.dto.PageResponseDTO;
 import com.erp.dto.StoreItemDTO;
 import com.erp.service.StoreItemService;
 import com.erp.service.StoreStockService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/stock/storeItem")
 public class StoreItemRestController {
 
     private final StoreItemService storeItemService;
     private final StoreStockService storeStockService;
 
-
-
-    /**
-     * 재고 조회 : 본사용 목록 API
-     *  - GET /stock/storeItem/manager/list/{pageNo}?storeNo=1&category=치즈&searchType=NAME&keyword=모짜
-     *  - pageNo : 1-base (UI) → 서비스는 0-base
-     */
-    @GetMapping("/manager/list/{pageNo}")
+    /** 본사 목록 API → /manager/stock/storeItem/list/{pageNo}  (pageNo: 1-base) */
+    @GetMapping("/manager/stock/storeItem/list/{pageNo}")
     public PageResponseDTO<StoreItemDTO> getManagerItems(@PathVariable int pageNo,
                                                          SearchRequestDTO request) {
-        request.setPage(pageNo - 1);   // 1 → 0, 2 → 1 ...
+        request.setPage(Math.max(0, pageNo - 1));
         return storeItemService.getStoreItems(request);
     }
 
-    /**
-     * 재고 조회 : 직영점용 목록 API
-     *  - GET /stock/storeItem/store/list/{pageNo}?storeNo=1&category=치즈&searchType=NAME&keyword=모짜
-     */
-    @GetMapping("/store/list/{pageNo}")
+    /** 직영점 목록 API → /store/stock/storeItem/list/{pageNo} (로그인 사용자 storeNo 강제) */
+    @GetMapping("/store/stock/storeItem/list/{pageNo}")
     public PageResponseDTO<StoreItemDTO> getStoreItems(@PathVariable int pageNo,
-                                                       SearchRequestDTO request) {
-        request.setPage(pageNo - 1);
+                                                       SearchRequestDTO request,
+                                                       @AuthenticationPrincipal PrincipalDetails p) {
+        request.setPage(Math.max(0, pageNo - 1));
+        if (p != null && p.getStoreNo() != null) request.setStoreNo(p.getStoreNo());
         return storeItemService.getStoreItems(request);
     }
 
-    /**
-     * 하한선 저장 (본사/직영점 공용)
-     *  - POST /stock/storeItem/{storeItemNo}/limit
-     *  - form-data 또는 x-www-form-urlencoded:
-     *      newLimit     : Integer 또는 비워두면 하한선 삭제
-     *      isManagerRole: true(본사), false(직영점)
-     */
-    @PostMapping("/{storeItemNo}/limit")
-    public void updateLimit(@PathVariable Long storeItemNo,
-                            @RequestParam(required = false) Integer newLimit,
-                            @RequestParam(defaultValue = "false") boolean isManagerRole) {
-        storeItemService.setStoreItemLimit(storeItemNo, newLimit, isManagerRole);
+    /** 하한선 저장(본사) → /manager/stock/storeItem/{storeItemNo}/limit */
+    @PostMapping("/manager/stock/storeItem/{storeItemNo}/limit")
+    public void updateLimitByManager(@PathVariable Long storeItemNo,
+                                     @RequestParam(required = false) Integer newLimit) {
+        storeItemService.setStoreItemLimit(storeItemNo, newLimit, true);
     }
 
-    @PostMapping("/{storeItemNo}/dispose")
+    /** 하한선 저장(직영점) → /store/stock/storeItem/{storeItemNo}/limit */
+    @PostMapping("/store/stock/storeItem/{storeItemNo}/limit")
+    public void updateLimitByStore(@PathVariable Long storeItemNo,
+                                   @RequestParam(required = false) Integer newLimit) {
+        storeItemService.setStoreItemLimit(storeItemNo, newLimit, false);
+    }
+
+    /** 폐기 등록(직영점) → /store/stock/storeItem/{storeItemNo}/dispose */
+    @PostMapping("/store/stock/storeItem/{storeItemNo}/dispose")
     public java.util.Map<String, Object> dispose(@PathVariable Long storeItemNo,
                                                  @RequestParam int quantity,
                                                  @RequestParam(required = false) String reason) {
         int current = storeStockService.dispose(storeItemNo, quantity, reason);
         return java.util.Map.of("currentQuantity", current);
     }
-
 }
