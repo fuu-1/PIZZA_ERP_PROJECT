@@ -22,19 +22,7 @@ public interface ItemDAO {
     List<ItemDTO> getItemList(@Param("itemCategory") String itemCategory,
                               @Param("ingredientName") String ingredientName, @Param("itemCode") String itemCode);
 
-    // 5) 카테고리 검색
-    List<ItemDTO> getByCategory(String itemCategory);
-
-    // 6) 품목명 검색
-    List<ItemDTO> getByItemName(String itemName);
-
-    // 7) 품목코드 검색
-    List<ItemDTO> getByItemCode(String itemCode);
-
-    // 8) 재료명 검색
-    List<ItemDTO> getByIngredient(String ingredientName);
-
-    // 9) 상세 조회
+    // 상세 조회
     ItemDTO getItemDetail(Long itemNo);
 
     ItemDTO getItemByItemNo(@Param("itemNo") Long itemNo);
