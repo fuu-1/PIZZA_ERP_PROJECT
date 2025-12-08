@@ -1,10 +1,5 @@
-📘 Git Flow Branch Strategy (경량 버전)
-
-우리 프로젝트는 main + develop + feature/ 구조의
-단순하고 효율적인 Git Flow 전략을 사용합니다.
-release, hotfix 브랜치는 사용하지 않습니다.
-
 🚀 Branch 구조
+
 🔵 main
 
 배포용 브랜치
