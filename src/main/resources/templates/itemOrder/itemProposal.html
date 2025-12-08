@@ -464,7 +464,7 @@
         data.forEach((item) => {
             const date = new Date(item.proposalDate);
             let row = `<tr>
-                        <td>${date.getFullYear()+"-"+String(date.getMonth()).padStart(2, "0")+"-"+String(date.getDate()).padStart(2, "0")}</td>
+                        <td>${date.getFullYear()+"-"+String(date.getMonth()+1).padStart(2, "0")+"-"+String(date.getDate()).padStart(2, "0")}</td>
                         <td class="fw-bold">${item.itemName}</td>
                         <td>${item.quantity +" "+ item.supplyUnit}</td>
                         <td>${item.reason == null ? "-" : item.reason}</td>
