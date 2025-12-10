@@ -42,11 +42,11 @@ public class ManagerDAOTest {
     @Test
     void setManager() {
         ManagerDTO manager = new ManagerDTO();
-        manager.setManagerId("kosta123");
+        manager.setManagerId("sh000642");
         manager.setPw(encoder.encode("123"));
-        manager.setEmail("kosta123@gmail.com");
-        manager.setManagerName("표수정");
-        manager.setPhoneNumber("010-9876-5432");
+        manager.setEmail("sh000642@gmail.com");
+        manager.setManagerName("최정문");
+        manager.setPhoneNumber("010-1244-5169");
 
         managerDAO.setManager(manager);
 
