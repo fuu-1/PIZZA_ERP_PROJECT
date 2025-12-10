@@ -10,7 +10,9 @@
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/js/util.js"></script>
+    <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=55b8e6a9e27878899b29b23d80c19d82&libraries=services,clusterer,drawing"></script>
     <style>
+
         body {
             background-color: #e5e5e5;
         }
@@ -53,9 +55,13 @@
         }
 
         /* 페이지네이션 가운데 정렬 */
-        #paginationArea ul {
+        #pagination ul {
             justify-content: center;
         }
+        #pagination li {
+            cursor: pointer;
+        }
+
     </style>
 </head>
 
@@ -83,7 +89,6 @@
       <div class="me-4">
         <label class="fw-semibold me-2">검색 조건</label>
         <select id="searchType" class="form-select d-inline-block">
-          <option value="all">전체</option>
           <option value="region">지역</option>
           <option value="storename">직영점명</option>
           <option value="manager">점장명</option>
@@ -141,9 +146,8 @@
 
                 <!-- 우측 지도 -->
                 <div class="col-5">
-                    <div style="width:100%; height:500px;">
-<!--                        <img src="/image/map_sample.png"-->
-<!--                             style="width:100%;height:100%;object-fit:cover;border-radius:8px;">-->
+                    <div id="map" style="width:100%; height:500px;">
+
                     </div>
                 </div>
 
@@ -264,30 +268,75 @@
 <script>
     const storeTable = $("#storeList")
 
-    function loadPage(pageNo = 0) {
+    function loadPage(pageNo) {
         const storeStatus = $("#storeStatus").val();
         const searchType = $("#searchType").val();
         const keyword = $("#searchKeyword").val();
 
         const params = new URLSearchParams();
-        params.append("page", pageNo);
+        params.append("page", pageNo-1);
 
         if (storeStatus !== "all") {
             params.append("storeStatus", storeStatus);
         }
+        if (searchType === "region") params.append("address", keyword);
+        if (searchType === "storename") params.append("storeName", keyword);
+        if (searchType === "manager") params.append("managerName", keyword);
 
-        if (searchType !== "all" && keyword) {
-            if (searchType === "region") params.append("address", keyword);
-            if (searchType === "storename") params.append("storeName", keyword);
-            if (searchType === "manager") params.append("managerName", keyword);
-        }
 
         fetchUtil(`/getStoreList?${params.toString()}`, data => {
             renderStoreList(data.content);
-            updatePaginationUI(pageNo + 1, data.totalPages);
+            updatePaginationUI(pageNo, data.totalPages);
+            loadMap(data.content);
         });
     }
 
+    let map;
+    const imageSrc = "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png";
+    const imageSize = new kakao.maps.Size(24, 35);
+
+    function loadMap(data){
+        var container = document.getElementById('map');
+        var options = {
+            center: new kakao.maps.LatLng(37.47984, 126.88279),
+            level: 10
+        };
+
+        map = new kakao.maps.Map(container, options);
+        loadMarkers(data);
+    }
+
+    function loadMarkers(data) {
+
+        if (!data) return;
+
+        const positions = data.map(store => ({
+            content: `<div>${store.storeName}</div>`,
+            latlng: new kakao.maps.LatLng(store.latitude, store.longitude)
+        }));
+
+        positions.forEach(pos => {
+            const markerImage = new kakao.maps.MarkerImage(imageSrc, imageSize);
+
+            const marker = new kakao.maps.Marker({
+                map: map,
+                position: pos.latlng,
+                image: markerImage
+            });
+
+            const infowindow = new kakao.maps.InfoWindow({
+                content: pos.content
+            });
+
+            kakao.maps.event.addListener(marker, 'mouseover', () => {
+                infowindow.open(map, marker);
+            });
+
+            kakao.maps.event.addListener(marker, 'mouseout', () => {
+                infowindow.close();
+            });
+        });
+    }
 
     function renderStoreList(data) {
         const tbody = storeTable.find("tbody");
@@ -316,12 +365,14 @@
         })
     }
     $(window).on("load", function () {
-        loadPage(0);
+        loadPage(1);
     });
     $("#storeStatus").on("change", function () {
-        loadPage(0);
+        loadPage(1);
     });
-
+    $("#searchBtn").on("click", function () {
+        loadPage(1);
+    });
     function openStoreDetail(no) {
         var s = stores.find(x => x.no === no);
         if (!s) return;
@@ -337,17 +388,14 @@
         $("#mdCloseDate").text(s.closeDate);
 
         new bootstrap.Modal(document.getElementById("storeDetailModal")).show();
-    }
+    };
 
-    $(document).ready(function () {
-        $("#searchBtn").on("click", function () {
-            loadPage(0);
-        });
-
-        $("#storeTable").on("click", ".open-detail", function () {
-            openStoreDetail($(this).data("no"));
-        });
+    $(document).on("click", "#pagination .page-link", function (e) {
+        e.preventDefault();      // a 태그 기본 동작 막기
+        const page = $(this).data("page");
+        loadPage(page);          // 원하는 페이지 로드
     });
+
 </script>
 
 </body>

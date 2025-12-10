@@ -21,4 +21,6 @@ public class StoreListRestController {
                                        @RequestParam(required = false) String storeStatus) {
         return storeService.getStoresList(page, address, storeName, managerName, storeStatus);
     }
+
+
 }
