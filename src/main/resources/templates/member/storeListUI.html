@@ -89,7 +89,6 @@
       <div class="me-4">
         <label class="fw-semibold me-2">검색 조건</label>
         <select id="searchType" class="form-select d-inline-block">
-          <option value="all">전체</option>
           <option value="region">지역</option>
           <option value="storename">직영점명</option>
           <option value="manager">점장명</option>
@@ -275,26 +274,21 @@
         const keyword = $("#searchKeyword").val();
 
         const params = new URLSearchParams();
-        params.append("page", pageNo);
+        params.append("page", pageNo-1);
 
         if (storeStatus !== "all") {
             params.append("storeStatus", storeStatus);
         }
+        if (searchType === "region") params.append("address", keyword);
+        if (searchType === "storename") params.append("storeName", keyword);
+        if (searchType === "manager") params.append("managerName", keyword);
 
-        if (searchType !== "all" && keyword) {
-            if (searchType === "region") params.append("address", keyword);
-            if (searchType === "storename") params.append("storeName", keyword);
-            if (searchType === "manager") params.append("managerName", keyword);
-        }
 
-        fetchUtil(`/getStoreList?page=${pageNo - 1}`, data => {
+        fetchUtil(`/getStoreList?${params.toString()}`, data => {
             renderStoreList(data.content);
             updatePaginationUI(pageNo, data.totalPages);
             loadMap(data.content);
         });
-
-
-
     }
 
     let map;
@@ -376,7 +370,9 @@
     $("#storeStatus").on("change", function () {
         loadPage(1);
     });
-
+    $("#searchBtn").on("click", function () {
+        loadPage(1);
+    });
     function openStoreDetail(no) {
         var s = stores.find(x => x.no === no);
         if (!s) return;
