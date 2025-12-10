@@ -7,7 +7,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-
+    <script src="/js/util.js"></script>
     <style>
         header {
             position: fixed;
@@ -72,6 +72,7 @@
             <div class="row g-3">
                 <input type="hidden" id="menuNos" th:value="${menuNos}">
                 <input type="hidden" id="menuNo" th:value="${menu.menuNo}">
+
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">카테고리</label>
                     <div class="border rounded px-3 py-2 bg-light" th:text="${menu.menuCategory}"></div>
@@ -98,6 +99,7 @@
                         <label class="form-check-label">무</label>
                     </div>
                 </div>
+
                 <div class="col-md-4" th:if="${hasSize}"
                      th:each="s : ${sizeList}">
                     <label class="form-label fw-semibold"
@@ -109,24 +111,27 @@
                     <label class="form-label fw-semibold">판매 가격</label>
                     <div class="border rounded px-3 py-2 bg-light" th:text="${menu.menuPrice}"></div>
                 </div>
+
                 <div class="col-md-8">
                     <label class="form-label fw-semibold">설명</label>
                     <div class="border rounded px-3 py-2 bg-light overflow-auto" style="height: 100px;"
                          th:text="${menu.menuExplain}"></div>
                 </div>
+
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">출시 상태</label>
                     <div class="border rounded px-3 py-2 bg-light" th:text="${menu.releaseStatus}"></div>
                 </div>
+
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">대표 이미지</label><br>
                     <img th:src="${menu.menuImage}" class="detail-img rounded shadow-sm" th:alt="${menu.menuName}">
                 </div>
             </div>
 
-
             <div class="mt-4">
                 <h5 class="fw-bold mb-3">레시피 정보</h5>
+
                 <table class="table text-center align-middle" th:if="${hasSize}">
                     <thead class="table-light">
                     <tr>
@@ -136,18 +141,16 @@
                         <th>미디움 정량</th>
                     </tr>
                     </thead>
-
                     <tbody>
                     <tr th:each="ing : ${ingredients}">
                         <td th:text="${ing.ingredientName}"></td>
                         <td th:text="${ing.stockUnit}"></td>
-
                         <td th:text="${ing.quantityLarge}"></td>
-
                         <td th:text="${ing.quantityMedium}"></td>
                     </tr>
                     </tbody>
                 </table>
+
                 <table class="table text-center align-middle" th:if="${!hasSize}">
                     <thead class="table-light">
                     <tr>
@@ -156,7 +159,6 @@
                         <th>정량</th>
                     </tr>
                     </thead>
-
                     <tbody>
                     <tr th:each="ing : ${ingredients}">
                         <td th:text="${ing.ingredientName}"></td>
@@ -165,6 +167,7 @@
                     </tr>
                     </tbody>
                 </table>
+
             </div>
         </div>
     </div>
@@ -176,7 +179,7 @@
             <div class="modal-body">
                 <p id="alertMessage" class="fs-5 fw-bold mb-4 text-dark"></p>
                 <div class="d-flex justify-content-center gap-3">
-                    <button type="button" class="btn px-4 custom-btn" data-bs-dismiss="modal">확인</button>
+                    <button type="button" class="btn px-4 custom-btn alert-confirm-btn">확인</button>
                     <button type="button" class="btn px-4 gray-btn" data-bs-dismiss="modal">취소</button>
                 </div>
             </div>
@@ -186,27 +189,40 @@
 
 <script>
 
-
     $("#menuSetBtn").click(() => {
         const menuNo = $("#menuNo").val();
         location.href = `/menu/menuSet?menuNo=${menuNo}`;
-    })
+    });
     $("#menuListBtn").click(() => {
         location.href = `/menu/menuUI`;
-    })
+    });
 
-    function showAlert(message, onClose) {
+
+    function showAlert(message, onConfirm) {
         $("#alertMessage").text(message);
-        $("#alertModal").off("hidden.bs.modal").on("hidden.bs.modal", function () {
-            if (typeof onClose === "function") onClose();
+        $(".alert-confirm-btn").off("click").on("click", function () {
+            if (typeof onConfirm === "function") onConfirm();
+            $("#alertModal").modal("hide");
         });
         $("#alertModal").modal("show");
     }
 
-    $("#menuDelBtn").click(() => {
-        showAlert("메뉴를 삭제하시겠습니까?");
 
+    $("#menuDelBtn").click(() => {
+        const menuNo = $("#menuNo").val();
+        showAlert("메뉴를 삭제하시겠습니까?", function () {
+            fetchUtil(
+                `/menu/delMenu?menuNo=${menuNo}`,
+                (res) => {
+                    alert("메뉴가 삭제되었습니다.");
+                    location.href = "/menu/menuUI";
+                },
+                "DELETE"
+            );
+        });
     });
+
 </script>
+
 </body>
 </html>

@@ -353,9 +353,21 @@ public class MenuService {
     }
 
 
+    @Transactional
     public void removeMenu(Long menuNo) {
+
         MenuDTO menu = menuDAO.getMenuByMenuNo(menuNo);
-        if (menu == null) throw new NoMenuException("없는 메뉴입니다.");
-        menuDAO.removeMenu(menuNo);
+        if (menu == null) {
+            throw new NoMenuException("없는 메뉴입니다.");
+        }
+
+        List<MenuDTO> sameCodeMenus = menuDAO.getMenuByMenuCode(menu.getMenuCode());
+
+        for (MenuDTO m : sameCodeMenus) {
+            Long targetMenuNo = m.getMenuNo();
+            storeMenuRepository.deleteByMenu_MenuNo(targetMenuNo);
+            menuIngredientRepository.deleteByMenu_MenuNo(targetMenuNo);
+            menuDAO.removeMenu(targetMenuNo);
+        }
     }
 }
