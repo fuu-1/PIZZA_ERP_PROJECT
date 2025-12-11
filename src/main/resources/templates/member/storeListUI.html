@@ -368,6 +368,7 @@
         loadPage(page);          // 원하는 페이지 로드
     });
 
+
     $(document).on("click", ".detailBtn", function () {
         const storeNo = $(this).data("storeno");
         fetchUtil(`getStoreDetail/${storeNo}`, data => {
@@ -375,9 +376,9 @@
         })
     });
 
-
+    let currentStore = null;
     function openStoreDetail(store) {
-
+        currentStore = store;
         $("#mdStoreName").text(store.storeName?? "-");
         $("#mdStatus").text(store.storeStatus?? "-");
         $("#mdManagerName").text(store.managerName?? "-");
@@ -392,7 +393,14 @@
     }
 
     $("#storeStockBtn").on("click", function () {
-        location.href = `/manager/stock/storeItem`
+        const storeNo = currentStore.storeNo;
+        const storeName = currentStore.storeName;
+        location.href = `/manager/stock/storeItem?storeNo=${storeNo}&storeName=${encodeURIComponent(storeName)}`;
+    })
+
+    $("#storeMenuBtn").on("click", function () {
+        const storeNo = currentStore.storeNo;
+        location.href = `/manager/storeMenu/storeNo=${storeNo}`;
     })
 
 </script>
