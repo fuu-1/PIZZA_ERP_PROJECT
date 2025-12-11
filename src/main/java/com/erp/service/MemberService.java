@@ -10,6 +10,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -23,8 +24,10 @@ public class MemberService {
 
     private final ManagerDAO managerDAO;
     private final StoreDAO storeDAO;
+    private final BCryptPasswordEncoder encoder;
 
     public void addManager(ManagerDTO managerDTO) {
+        managerDTO.setPw(encoder.encode(managerDTO.getPw()));
         managerDTO.setRole("ROLE_MANAGER");
         try {
             managerDAO.addManager(managerDTO);

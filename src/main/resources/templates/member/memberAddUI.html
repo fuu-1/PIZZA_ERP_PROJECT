@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>계정 등록</title>
@@ -76,6 +77,7 @@
 </head>
 
 <body class="p-4">
+<header th:replace="fragments/toolBar :: toolBar"></header>
 
     <div class="page-wrap">
 
@@ -351,14 +353,14 @@
             }
 
             if(tabStore.hasClass("active")){
-                fetchUtil("/store/store", (data)=>{
+                fetchUtil("/admin/member/store", (data)=>{
                         alert(data.message);
                     },
                     "POST", JSON.stringify(jsonData)
                 );
             }
             else if(tabManager.hasClass("active")){
-                fetchUtil("/store/manager", (data)=>{
+                fetchUtil("/admin/member/manager", (data)=>{
                     alert(data.message);
                 }, "POST", JSON.stringify(jsonData));
             }
@@ -366,14 +368,14 @@
 
         $("#storeIdConfirm").on("click", function(){
             const params = new URLSearchParams({managerId:$("#storeId").val()});
-            fetchUtil(`/store/member?${params.toString()}`, (data)=>{
+            fetchUtil(`/admin/member/member?${params.toString()}`, (data)=>{
                 alert(data.message);
             });
         });
 
         $("#managerIdConfirm").on("click", function(){
             const params = new URLSearchParams({managerId:$("#managerId").val()});
-            fetchUtil(`/store/member?${params.toString()}`, (data)=>{
+            fetchUtil(`/admin/member/member?${params.toString()}`, (data)=>{
                 alert(data.message);
             });
         });

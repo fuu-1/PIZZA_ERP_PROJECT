@@ -16,4 +16,7 @@ public class MemberController {
     public String memberListUI() {
         return "member/memberListUI";
     }
+
+    @GetMapping("/admin/memberAddUI")
+    public String userJoin() {return "member/memberAddUI";}
 }
