@@ -1,5 +1,6 @@
 package com.erp.service;
 
+import com.erp.controller.exception.StoreNotFoundException;
 import com.erp.dao.ManagerDAO;
 import com.erp.dao.StoreDAO;
 import com.erp.dto.ManagerDTO;
@@ -55,6 +56,14 @@ public class MemberService {
         dto.setMenuStopRole(safeRole);
 
         storeDAO.setStoreRole(dto);  // MyBatis update
+    }
+
+    public StoreDTO getStoreDetail(long storeNo) {
+        StoreDTO store = storeDAO.getStoreDetail(storeNo);
+        if (store == null) {
+            throw new StoreNotFoundException("해당 직영점을 찾을 수 없습니다. storeNo=" + storeNo);
+        }
+        return store;
     }
 
     // 공통 페이지 변환

@@ -31,10 +31,8 @@
                     <td>${email}</td>
                     <td>${phoneNumber}</td>
                     <td>
-                        <!-- 아직 기능 미구현: 버튼만 노출 -->
                         <button type="button"
-                                class="btn btn-sm btn-outline-secondary managerSetbtn"
-                                disabled>
+                                class="btn btn-sm btn-outline-secondary managerSetbtn">
                             수정
                         </button>
                     </td>
@@ -73,7 +71,6 @@
                     <td>${storePhoneNumber}</td>
                     <td>
                         <div class="form-check form-switch d-flex justify-content-center">
-                            <!-- 메뉴 판매 중지 권한 토글 -->
                             <input class="form-check-input store-menu-toggle"
                                    type="checkbox"
                                    ${checkedAttr}
@@ -81,10 +78,9 @@
                         </div>
                     </td>
                     <td>
-                        <!-- 상세보기 버튼: 아이콘만, 테두리/배경 없음 (기능 미구현) -->
                         <button type="button"
-                                class="btn p-0 border-0 bg-transparent detailStoreBtn"
-                                disabled>
+                                class="detailStoreBtn"
+                                data-store-no="${storeNo}">
                             <i class="bi bi-file-earmark-text" style="font-size: 1.6rem;"></i>
                         </button>
                     </td>
@@ -148,41 +144,52 @@
     // -----------------------------
     $(function () {
 
+        // URL 파라미터로 초기 탭/페이지 결정 (detail → 목록 복귀용)
+        const params = new URLSearchParams(window.location.search);
+        const initialTab = params.get('tab') || 'manager';
+        const initialPage = parseInt(params.get('page') || '1', 10);
+        const safeInitialPage = isNaN(initialPage) || initialPage < 1 ? 1 : initialPage;
+
+        function activateTab(tab) {
+            currentTab = tab;
+
+            if (tab === 'store') {
+                $('#tabStore').addClass('active');
+                $('#tabManager').removeClass('active');
+                $('#sectionStore').addClass('active');
+                $('#sectionManager').removeClass('active');
+            } else {
+                $('#tabManager').addClass('active');
+                $('#tabStore').removeClass('active');
+                $('#sectionManager').addClass('active');
+                $('#sectionStore').removeClass('active');
+            }
+        }
+
         // 탭 전환
         $('#tabManager').on('click', function () {
             if (currentTab === 'manager') return;
-
-            currentTab = 'manager';
-
-            $('#tabManager').addClass('active');
-            $('#tabStore').removeClass('active');
-
-            $('#sectionManager').addClass('active');
-            $('#sectionStore').removeClass('active');
-
+            activateTab('manager');
             loadPage(1);
         });
 
         $('#tabStore').on('click', function () {
             if (currentTab === 'store') return;
-
-            currentTab = 'store';
-
-            $('#tabStore').addClass('active');
-            $('#tabManager').removeClass('active');
-
-            $('#sectionStore').addClass('active');
-            $('#sectionManager').removeClass('active');
-
+            activateTab('store');
             loadPage(1);
         });
 
-        // 계정 등록 버튼: 안내만
+        // 계정 등록 버튼: 추후 구현 → alert
         $('#addMemberBtn').on('click', function () {
             alert('계정 등록 기능은 추후 구현 예정입니다.');
         });
 
-        // 직영점 - 메뉴 판매 중지 권한 토글 이벤트
+        // 본사 직원 수정 버튼: 추후 구현 → alert
+        $('#managerTbody').on('click', '.managerSetbtn', function () {
+            alert('본사 직원 정보 수정 기능은 추후 구현 예정입니다.');
+        });
+
+        // 직영점 - 메뉴 판매 중지 권한 토글
         $('#storeTbody').on('change', '.store-menu-toggle', function () {
             const $cb = $(this);
             const storeNo = $cb.data('store-no');
@@ -196,15 +203,27 @@
                 menuStopRole: newRole
             };
 
-            // /admin/member/store/menuStopRole 로 PATCH
             fetchUtil('/admin/member/store/menuStopRole', function (res) {
                 console.log('menuStopRole updated:', res);
-                // 필요하면 여기서 toast 띄우기
             }, 'POST', payload);
         });
 
-        // 첫 로딩: 본사 직원 1페이지
-        loadPage(1);
+        // 직영점 상세 보기 버튼
+        $('#storeTbody').on('click', '.detailStoreBtn', function () {
+            const storeNo = $(this).data('store-no');
+            if (!storeNo) return;
+
+            const qs = new URLSearchParams();
+            qs.set('storeNo', storeNo);
+            qs.set('fromTab', 'store');
+            qs.set('fromPage', currentPage || 1);
+
+            location.href = '/admin/storeDetailUI?' + qs.toString();
+        });
+
+        // 🔹 초기 탭/페이지 로딩
+        activateTab(initialTab === 'store' ? 'store' : 'manager');
+        loadPage(safeInitialPage);
     });
 
 })(jQuery);

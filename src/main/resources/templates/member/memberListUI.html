@@ -4,7 +4,7 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>직원 목록</title>
+    <title>계정 목록</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
@@ -13,6 +13,7 @@
     <style>
         body {
             background-color: #fafafa;
+            padding-top: 80px; /* 🔹 툴바 높이만큼 여백 */
         }
 
         .custom-btn {
@@ -25,7 +26,6 @@
             border-color: #f2da84 !important;
         }
 
-        /* 중앙 정렬 + 최대 너비 */
         .page-wrap {
             max-width: 1500px;
             margin: 0 auto;
@@ -35,7 +35,6 @@
             border: 1px solid #ddd;
         }
 
-        /* 탭 버튼 */
         .tab-btn {
             width: 150px;
             padding: 10px;
@@ -56,12 +55,13 @@
             justify-content: center;
             margin-bottom: 20px;
         }
+
         .detailStoreBtn {
             border: none;
             background-color: transparent;
             padding: 0;
         }
-        /* 내용 영역 */
+
         .content-section {
             display: none;
         }
@@ -70,23 +70,27 @@
             display: block;
         }
 
-
-
-
+        /* 🔹 클릭 가능한 것들 커서 표시 */
+        .tab-btn,
+        .detailStoreBtn,
+        .store-menu-toggle,
+        .page-link,
+        #addMemberBtn {
+            cursor: pointer;
+        }
     </style>
 </head>
 
-<body >
+<body>
 
 <!-- 상단 툴바 -->
 <div th:replace="~{fragments/toolBar :: toolBar}"></div>
 
 <div class="page-wrap mt-4 p-4">
     <div>
-        <h3 class="fw-bold mb-4">직원 목록</h3>
+        <h3 class="fw-bold mb-4">계정 목록</h3>
     </div>
     <div class="text-end mb-3">
-        <!-- 기능은 아직 미구현, 버튼만 노출 -->
         <button class="btn custom-btn" id="addMemberBtn" type="button">계정 등록</button>
     </div>
 
@@ -96,11 +100,8 @@
         <div class="tab-btn" id="tabStore">직영점</div>
     </div>
 
-    <!-- =========================== -->
     <!-- 본사 직원 목록 -->
-    <!-- =========================== -->
     <div id="sectionManager" class="content-section active">
-
         <table class="table table-bordered align-middle text-center bg-white">
             <thead class="table-light">
             <tr>
@@ -111,19 +112,12 @@
                 <th>정보 수정</th>
             </tr>
             </thead>
-
-            <tbody id="managerTbody">
-            <!-- JS 로 동적 렌더링 -->
-            </tbody>
+            <tbody id="managerTbody"></tbody>
         </table>
-
     </div>
 
-    <!-- =========================== -->
     <!-- 직영점 직원 목록 -->
-    <!-- =========================== -->
     <div id="sectionStore" class="content-section">
-
         <table class="table table-bordered align-middle text-center bg-white">
             <thead class="table-light">
             <tr>
@@ -135,21 +129,16 @@
                 <th>상세</th>
             </tr>
             </thead>
-
-            <tbody id="storeTbody">
-            <!-- JS 로 동적 렌더링 -->
-            </tbody>
+            <tbody id="storeTbody"></tbody>
         </table>
-
     </div>
 
-    <!-- 공통 페이지네이션 영역 (util.js 활용) -->
+    <!-- 공통 페이지네이션 -->
     <div class="d-flex justify-content-center mt-3">
         <ul id="pagination" class="pagination"></ul>
     </div>
 </div>
 
-<!-- 공용 util + 직원목록 JS -->
 <script src="/js/util.js"></script>
 <script src="/js/memberList.js"></script>
 
