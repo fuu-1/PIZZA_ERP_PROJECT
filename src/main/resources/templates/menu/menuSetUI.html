@@ -164,11 +164,8 @@
             </div>
 
             <div class="col-md-4">
-                <label class="form-label fw-semibold">대표 이미지 경로</label>
-                <input type="text" class="form-control" id="menuImage" th:value="${menu.menuImage}">
-                <div class="mt-2">
-                    <img th:src="${menu.menuImage}" alt="대표 이미지" class="img-thumbnail" style="max-width: 200px;">
-                </div>
+                <label class="form-label fw-semibold">대표 이미지</label>
+                <input type="file" class="form-control" id="menuImage" th:text="${menu.menuImage}" :>
             </div>
 
         </div>
@@ -401,12 +398,10 @@
         $("#ingredientModal").modal("hide");
     });
 
-    // 행 삭제
     $(document).on("click", ".delete-row", function () {
         $(this).closest("tr").remove();
     });
 
-    // 저장(fetchUtil 적용)
     $("#saveBtn").click(function () {
         var hasSize = $("#hasSize").val() === "true";
 
@@ -416,7 +411,6 @@
         menuRequest.menuCode = $("#menuCode").val();
         menuRequest.menuCategory = $("#menuCategory").val();
         menuRequest.menuExplain = $("#menuExplain").val();
-        menuRequest.menuImage = $("#menuImage").val();
         menuRequest.releaseStatus = $("#releaseStatus").val();
         menuRequest.size = hasSize ? "Y" : "N";
 
@@ -450,6 +444,18 @@
 
         menuRequest.ingredients = ingredients;
 
+        const formData = new FormData();
+        formData.append(
+            "menuDTO",
+            new Blob([JSON.stringify(menuRequest)], { type: "application/json" })
+        );
+
+        const menuImage = $("#menuImage")[0].files[0];
+        if(menuImage){
+            formData.append("menuImage", menuImage);
+        }
+
+
         fetchUtil(
             "/menu/setMenu",
             () => {
@@ -457,8 +463,8 @@
                 const menuNo = $("#baseMenuNo").val();
                 location.href = `/menu/menuDetailUI?menuNo=${menuNo}`;
             },
-            "POST",
-            menuRequest
+            "PUT",
+            formData
         );
     });
 

@@ -246,7 +246,7 @@ public class MenuService {
     }
 
     @Transactional
-    public void updateMenu(MenuDTO menuRequest) {
+    public void updateMenu(MenuDTO menuRequest, MultipartFile menuImage) {
         if (menuImage != null && !menuImage.isEmpty()) {
             String imageUrl = s3Uploader.uploadMenuImage(menuImage, menuRequest.getMenuCode());
             menuRequest.setMenuImage(imageUrl);
