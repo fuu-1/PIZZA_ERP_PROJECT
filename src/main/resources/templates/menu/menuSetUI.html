@@ -83,7 +83,9 @@
             margin: 0 auto;
             display: block;
         }
-
+        .form-control-sm{
+            max-width: 260px;
+        }
         .detail-img {
             width: 220px;
             height: 160px;
@@ -159,22 +161,36 @@
                 <textarea class="form-control" rows="3" id="menuExplain"
                           th:text="${menu.menuExplain}"></textarea>
             </div>
+            <div class="d-flex  gap-5">
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">출시 상태</label>
+                    <select class="form-select" id="releaseStatus">
+                        <option th:selected="${menu.releaseStatus == '출시 예정'}">출시 예정</option>
+                        <option th:selected="${menu.releaseStatus == '출시 중'}">출시 중</option>
+                        <option th:selected="${menu.releaseStatus == '출시 중지'}">출시 중지</option>
+                    </select>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <label class="form-label fw-semibold mb-0">대표 이미지</label>
 
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">출시 상태</label>
-                <select class="form-select" id="releaseStatus">
-                    <option th:selected="${menu.releaseStatus == '출시 예정'}">출시 예정</option>
-                    <option th:selected="${menu.releaseStatus == '출시 중'}">출시 중</option>
-                    <option th:selected="${menu.releaseStatus == '출시 중지'}">출시 중지</option>
-                </select>
+                        <button type="button"
+                                class="btn btn-sm btn-outline-danger"
+                                id="removeImageBtn">
+                            이미지 삭제
+                        </button>
+                    </div>
+                    <input type="file" class="form-control form-control-sm mb-2" id="menuImage" >
+                    <div class="mt-2" id="imageArea">
+                        <img th:if="${menu.menuImage != null}"
+                             th:src="${menu.menuImage}"
+                             th:alt="${menu.menuName}"
+                             class="detail-img rounded shadow-sm mb-2">
+                    </div>
+                    <input type="hidden" id="originImage" th:value="${menu.menuImage}">
+                    <input type="hidden" id="removeImage" value="false">
+                </div>
             </div>
-
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">대표 이미지</label><input type="file" class="form-control" id="menuImage" >
-                <img th:src="${menu.menuImage}" class="detail-img rounded shadow-sm" th:alt="${menu.menuName}">
-
-            </div>
-
         </div>
     </div>
 
@@ -323,8 +339,11 @@
 
 
 <script>
-
-    // ✓ 모달 조회(fetchUtil 적용)
+    $("#removeImageBtn").click(function () {
+        $("#imageArea").hide();
+        $("#removeImage").val("true");
+        $("#menuImage").val("");
+    });
     $("#modalSearchBtn").click(function () {
         let category = $("#modalCategory").val();
         let type = $("#modalSearchType").val();
@@ -458,10 +477,13 @@
         );
 
         const menuImage = $("#menuImage")[0].files[0];
+        const originImage = $("#originImage").val();
+        const removeImage = $("#removeImage").val();
         if(menuImage){
             formData.append("menuImage", menuImage);
         }
-
+        formData.append("originImage", originImage);
+        formData.append("removeImage", removeImage);
 
         fetchUtil(
             "/menu/setMenu",
