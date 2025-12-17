@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -35,7 +36,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(csrf-> csrf.disable()); //
+        http.sessionManagement(session ->
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+        http.formLogin(form -> form.disable());
+        http.logout(logout -> logout.disable());
+        http.httpBasic(httpBasic -> httpBasic.disable());
+
+
 
         http.authorizeHttpRequests(auth ->
                 auth
@@ -47,30 +55,17 @@ public class SecurityConfig {
                 .anyRequest().authenticated());
 
 
-        http
-                .formLogin(form -> form
-                        .loginPage("/loginView")
-                        .loginProcessingUrl("/login")
-                        .usernameParameter("managerId")
-                        .passwordParameter("pw")
-                        .successHandler(loginSuccessHandler)
-                        .failureUrl("/loginView")
-                );
 
         http.exceptionHandling(ex -> {
            ex.accessDeniedHandler(new AccessDeniedHandler() {
                @Override
                public void handle(HttpServletRequest request, HttpServletResponse response, AccessDeniedException accessDeniedException) throws IOException, ServletException {
                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                   request.getRequestDispatcher("/noP ermission").forward(request, response);
+                   request.getRequestDispatcher("/noPermission").forward(request, response);
                }
            });
         });
-//        http.logout(logout -> logout
-//                .logoutUrl("/logout")
-//                .logoutSuccessUrl("/loginView")
-//                .invalidateHttpSession(true)
-//        );
+
 
         return http.build();
     }
