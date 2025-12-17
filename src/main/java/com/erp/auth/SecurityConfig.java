@@ -34,7 +34,7 @@ import java.io.IOException;
 public class SecurityConfig {
 
     private final LoginSuccessHandler loginSuccessHandler;
-    private CorsFilter corsFilter;
+    private final CorsFilter corsFilter;
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration ac) throws Exception {
         return ac.getAuthenticationManager();

@@ -3,6 +3,7 @@ package com.erp.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.erp.auth.PrincipalDetails;
+import com.erp.dto.LoginRequestDTO;
 import com.erp.dto.ManagerDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
@@ -29,11 +30,10 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         ObjectMapper mapper = new ObjectMapper();
         try {
-            ManagerDTO inputData= mapper.readValue(request.getInputStream(), ManagerDTO.class);
+            LoginRequestDTO inputData= mapper.readValue(request.getInputStream(), LoginRequestDTO.class);
             UsernamePasswordAuthenticationToken authRequest =
-                    new UsernamePasswordAuthenticationToken(inputData.getManagerId(),inputData.getPw());
+                    new UsernamePasswordAuthenticationToken(inputData.getManagerId(),inputData.getPassword());
             Authentication auth = authenticationManager.authenticate(authRequest);
-            PrincipalDetails principalDetails = (PrincipalDetails) auth.getPrincipal();
             return auth;
         } catch (IOException e) {
             e.printStackTrace();
