@@ -3,7 +3,6 @@ package com.erp.jwt;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.erp.auth.PrincipalDetails;
-import com.erp.dao.ManagerDAO;
 import com.erp.dto.ManagerDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
