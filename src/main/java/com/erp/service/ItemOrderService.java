@@ -1,5 +1,7 @@
 package com.erp.service;
 
+import com.erp.controller.exception.ItemOrderErrorCode;
+import com.erp.controller.exception.ItemOrderException;
 import com.erp.controller.exception.ItemOrderNotFoundException;
 import com.erp.controller.exception.StoreItemNotFoundException;
 import com.erp.dto.*;
@@ -77,7 +79,7 @@ public class ItemOrderService {
         ItemOrder itemOrder = repoOrder.findByItemOrderNo(orderNo);
 
         if(itemOrder == null){
-            throw new ItemOrderNotFoundException("존재하지 않는 발주입니다.: " + orderNo);
+            throw new ItemOrderNotFoundException(orderNo+"");
         }
 
         // 선택한 발주 요청 번호 데이터 상태 취소 변경
